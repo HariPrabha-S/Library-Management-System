@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import BookTable from "../../components/admin/BookTable";
-import BookFilters from "../../components/admin/BookFilters";
-import AdvancedBookFilters from "../../components/admin/AdvancedBookFilters";
-import AddBookModal from "../../components/admin/AddBookModal";
-import BookReports from "../../components/admin/BookReports";
+import BookTable from "./components/BookTable";
+import BookFilters from "./components/BookFilters";
+import AdvancedBookFilters from "./components/AdvancedBookFilters";
+import AddBookModal from "./components/AddBookModal";
+import BookReports from "./components/BookReports";
 import { FiFileText, FiArrowLeft } from "react-icons/fi";
 export default function ManageBooks() {
 

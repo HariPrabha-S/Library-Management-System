@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import AdminActivity from "../admin/components/Activity";
-import AdminRecent from "../admin/components/Recent";
+import AdminActivity from "./components/Activity";
+import AdminRecent from "./components/Recent";
 import { FiCalendar, FiClock, FiBook, FiBookOpen, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 
 export default function AdminDashboard() {

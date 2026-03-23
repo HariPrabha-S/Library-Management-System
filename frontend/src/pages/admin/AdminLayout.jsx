@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import AdminSidebar from "../../components/admin/Sidebar";
+import AdminSidebar from "./components/Sidebar";
 import { Outlet, useLocation } from "react-router-dom";
 
 export default function AdminLayout() {
@@ -21,6 +21,7 @@ export default function AdminLayout() {
     else if (path.includes("/admin/faculties")) setActive("faculties");
     else if (path.includes("/admin/issues")) setActive("issues");
     else if (path.includes("/admin/attendance")) setActive("attendance");
+    else if (path.includes("/admin/fines")) setActive("fines");
     else setActive("dashboard");
   }, [location]);
 

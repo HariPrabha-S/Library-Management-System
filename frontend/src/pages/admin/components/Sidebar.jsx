@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { FiLogOut, FiHome, FiUsers, FiBook, FiBookOpen, FiChevronLeft, FiChevronRight, FiUserCheck } from "react-icons/fi";
+import { FiLogOut, FiHome, FiUsers, FiBook, FiBookOpen, FiChevronLeft, FiChevronRight, FiUserCheck, FiDollarSign } from "react-icons/fi";
 import { useEffect } from "react";
 
 export default function AdminSidebar({ active, setActive, collapsed, setCollapsed }) {
@@ -29,28 +29,27 @@ export default function AdminSidebar({ active, setActive, collapsed, setCollapse
   ${collapsed ? "w-20 px-2" : "w-64 px-6"}`}
             >
 
-                <div>
+                <div className="flex flex-col flex-1 mb-6">
                     {/* PROFILE SECTION */}
-                    <div className={`flex flex-col items-center mb-10 ${collapsed ? "px-0" : "px-2"}`}>
-                        <div className={`
-                            relative flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-inner transition-all duration-300
-                            ${collapsed ? "w-12 h-12" : "w-20 h-20 mb-4"}
-                        `}>
-                            <div className="text-white font-heading text-2xl font-black">A</div>
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-[var(--color-primary)] rounded-full"></div>
-                        </div>
-                        {!collapsed && (
+                    <div className={`flex flex-col items-center mb-4 ${collapsed ? "px-0" : "px-2"}`}>
+                        {!collapsed ? (
                             <div className="text-center animate-fade-in">
-                                <h2 className="font-heading text-xl font-bold tracking-tight text-white mb-0.5">
+                                <h2 className="font-heading text-3xl font-bold tracking-tight text-white mb-0.5">
                                     ADMIN
                                 </h2>
                                 <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-black">System Librarian</p>
+                            </div>
+                        ) : (
+                            <div className="text-center animate-fade-in">
+                                <h2 className="font-heading text-xl font-bold tracking-tight text-white mb-0.5">
+                                    A
+                                </h2>
                             </div>
                         )}
                     </div>
 
                     {/* MENU */}
-                    <ul className="space-y-4 mt-6">
+                    <ul className="flex flex-col justify-evenly flex-1 mt-2">
 
                         {/* DASHBOARD */}
                         <li>
@@ -253,6 +252,39 @@ export default function AdminSidebar({ active, setActive, collapsed, setCollapse
                             </Link>
                         </li>
 
+                        {/* MANAGE FINES */}
+                        <li>
+                            <Link
+                                to="/admin/fines"
+                                onClick={() => setActive("fines")}
+                                className={`group relative flex items-center ${collapsed ? "justify-center" : "gap-3"
+                                    } px-4 py-3 rounded-2xl transition-all duration-300
+      ${active === "fines"
+                                        ? "bg-white/10 text-white translate-x-1"
+                                        : "opacity-60 hover:opacity-100 hover:bg-white/5 hover:translate-x-1"
+                                    }`}
+                            >
+                                {/* ACTIVE PILL */}
+                                {active === "fines" && (
+                                    <div className="absolute left-0 w-1 h-6 bg-[var(--color-secondary)] rounded-full -translate-x-2 animate-pulse" />
+                                )}
+
+                                <span
+                                    className={`text-xl transition-all duration-300 ${active === "fines"
+                                        ? "text-[var(--color-secondary)] scale-110"
+                                        : "text-white/70 group-hover:text-white"
+                                        }`}
+                                >
+                                    <FiDollarSign />
+                                </span>
+
+                                {!collapsed && (
+                                    <span className={`font-bold tracking-wide transition-all duration-300 ${active === "fines" ? "text-white" : "text-white/80"}`}>
+                                        Manage Fines
+                                    </span>
+                                )}
+                            </Link>
+                        </li>
 
                     </ul>
                 </div>
@@ -272,12 +304,12 @@ export default function AdminSidebar({ active, setActive, collapsed, setCollapse
                     <button
                         onClick={() => setCollapsed(!collapsed)}
                         className={`flex items-center ${collapsed ? "justify-center" : "gap-3 justify-center"
-                            } px-4 py-2 border border-white/10 rounded-2xl hover:bg-white/10 text-white/30 hover:text-white transition-all duration-300 group`}
+                            } px-4 py-3 border border-white/20 rounded-2xl bg-white/10 hover:bg-white hover:text-[var(--color-primary)] hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group`}
                     >
-                        {collapsed ? <FiChevronRight size={20} /> : (
+                        {collapsed ? <FiChevronRight size={20} className="group-hover:scale-110 transition-transform" /> : (
                             <>
                                 <FiChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50 group-hover:opacity-100">Collapse</span>
+                                <span className="text-xs font-black uppercase tracking-[0.25em] transition-all">Collapse</span>
                             </>
                         )}
                     </button>

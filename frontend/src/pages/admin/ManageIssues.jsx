@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { FiPlus } from "react-icons/fi";
 
-import IssueFilters from "../../components/admin/IssueFilters";
-import IssueTable from "../../components/admin/IssueTable";
-import IssueBookModal from "../../components/admin/IssueBookModal";
+import IssueFilters from "./components/IssueFilters";
+import IssueTable from "./components/IssueTable";
+import IssueBookModal from "./components/IssueBookModal";
 
 export default function ManageIssues() {
 
