@@ -3,17 +3,32 @@ import { DollarSign, AlertCircle, CheckCircle, Clock, BookOpen, CreditCard } fro
 
 
 const FineManagement = ({ user }) => {
-  const [data, setData]   = useState({ details: [], history: [], totalFine: 0, paidFine: 0, unpaidFine: 0 });
+  const [data, setData] = useState({ details: [], history: [], totalFine: 0, paidFine: 0, unpaidFine: 0 });
   const [loading, setLoading] = useState(true);
   const [paidIds, setPaidIds] = useState([]);
 
+  // ----- DUMMY DATA FOR FRONTEND TESTING -----
   const fetchFines = () => {
-    if (!user?.studentId) return;
-    setLoading(true);
-    fetch(`http://localhost:5000/api/fines/${user.studentId}`)
-      .then(r => r.json())
-      .then(d => { setData(d); setLoading(false); })
-      .catch((err) => { console.error(err); setLoading(false); });
+    // if (!user?.studentId) return;
+    // setLoading(true);
+    // fetch(`http://localhost:5000/api/fines/${user.studentId}`)
+    //   .then(r => r.json())
+    //   .then(d => { setData(d); setLoading(false); })
+    //   .catch((err) => { console.error(err); setLoading(false); });
+
+    const dummyData = {
+      totalFine: 25,
+      paidFine: 0,
+      unpaidFine: 25,
+      details: [
+        { id: 1, title: 'Design Patterns', daysOverdue: 5, finePerDay: 5, totalFine: 25, status: 'Unpaid' }
+      ],
+      history: [
+        { id: 2, title: 'Clean Architecture', totalFine: 15, paidDate: '2025-02-10', status: 'Paid' }
+      ]
+    };
+    setData(dummyData);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -21,18 +36,21 @@ const FineManagement = ({ user }) => {
   }, [user?.studentId]);
 
   const handlePay = (fineId, amount) => {
-    fetch('http://localhost:5000/api/fines/pay', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fineId }),
-    })
-    .then(r => r.json())
-    .then(() => {
-      setPaidIds(prev => [...prev, fineId]);
-      alert('Payment successful!');
-      fetchFines(); // Refresh to update summary cards
-    })
-    .catch(() => alert('Payment failed.'));
+    // fetch('http://localhost:5000/api/fines/pay', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ fineId }),
+    // })
+    // .then(r => r.json())
+    // .then(() => {
+    //   setPaidIds(prev => [...prev, fineId]);
+    //   alert('Payment successful!');
+    //   fetchFines(); // Refresh to update summary cards
+    // })
+    // .catch(() => alert('Payment failed.'));
+
+    setPaidIds(prev => [...prev, fineId]);
+    alert('Payment successful! (Dummy)');
   };
 
   const unpaidFines = data.details?.filter(f => f.status === 'Unpaid' && !paidIds.includes(f.id)) || [];
@@ -43,9 +61,9 @@ const FineManagement = ({ user }) => {
       {/* Summary cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
         {[
-          { label: 'Total Fine',    value: `₹${data.totalFine}`, icon: DollarSign, color: 'var(--danger)',   bg: 'var(--danger-light)' },
-          { label: 'Unpaid',        value: `₹${effectiveTotal}`,  icon: AlertCircle, color: '#f59e0b',       bg: 'rgba(245,158,11,0.1)' },
-          { label: 'Paid',          value: `₹${data.paidFine}`,  icon: CheckCircle, color: 'var(--success)', bg: 'var(--success-light)' },
+          { label: 'Total Fine', value: `₹${data.totalFine}`, icon: DollarSign, color: 'var(--danger)', bg: 'var(--danger-light)' },
+          { label: 'Unpaid', value: `₹${effectiveTotal}`, icon: AlertCircle, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+          { label: 'Paid', value: `₹${data.paidFine}`, icon: CheckCircle, color: 'var(--success)', bg: 'var(--success-light)' },
           { label: 'Overdue Books', value: data.details?.filter(f => f.status === 'Unpaid').length || 0, icon: BookOpen, color: 'var(--primary-color)', bg: 'var(--primary-light)' },
         ].map((c, i) => {
           const Icon = c.icon;

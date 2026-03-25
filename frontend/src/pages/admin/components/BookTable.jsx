@@ -1,6 +1,19 @@
+import { useState, useEffect } from "react";
 import { FiTrash } from "react-icons/fi";
+import { BookOpen, XCircle, CheckCircle } from "lucide-react";
 
 export default function BookTable({ books, selectedBooks, filters, setFilters, limit, setLimit, onSelect, onDelete, selectedColumns, isPrintable, reportSummary, isSummary }) {
+    const [viewedBook, setViewedBook] = useState(null);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape' && viewedBook) {
+                setViewedBook(null);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [viewedBook]);
 
     // Map of internal field names to display names
     const fieldDisplayNames = {
@@ -15,7 +28,6 @@ export default function BookTable({ books, selectedBooks, filters, setFilters, l
         yearOfPublishing: "Year",
         department: "Dept.",
         subject: "Subject",
-        issueType: "Issue Type",
         availability: "Status",
         price: "Price",
         purchaseDate: "Purchase Date",
@@ -28,7 +40,7 @@ export default function BookTable({ books, selectedBooks, filters, setFilters, l
     };
 
     // Determine which columns to show
-    const columnsToShow = selectedColumns || ["accessionNo", "title", "author", "department", "subject", "issueType"];
+    const columnsToShow = selectedColumns || ["accessionNo", "title", "author", "department", "subject"];
     const isFullDetails = columnsToShow.length > 8;
 
     return (
@@ -108,7 +120,17 @@ export default function BookTable({ books, selectedBooks, filters, setFilters, l
                                     {columnsToShow.map(col => (
                                         <td key={col} className={`${isFullDetails ? "py-2.5 px-2" : "py-4 px-3"} ${isPrintable ? "border border-gray-300 px-3" : ""}`}>
                                             {col === "title" ? (
-                                                <span className={`font-semibold ${isPrintable ? "text-black" : "text-gray-900 group-hover:text-[var(--color-primary)] transition-colors"} ${isFullDetails ? "line-clamp-2" : ""}`}>{book[col]}</span>
+                                                <span
+                                                    className={`font-semibold ${isPrintable ? "text-black" : "text-gray-900 group-hover:text-[var(--color-primary)] hover:underline transition-colors cursor-pointer"} ${isFullDetails ? "line-clamp-2" : ""}`}
+                                                    onClick={(e) => {
+                                                        if (!isPrintable) {
+                                                            e.stopPropagation();
+                                                            setViewedBook(book);
+                                                        }
+                                                    }}
+                                                >
+                                                    {book[col]}
+                                                </span>
                                             ) : (col === "price" || col === "totalPrice") ? (
                                                 <span className={isPrintable ? "text-black" : "text-gray-600 font-semibold text-nowrap"}>₹{(book[col] || 0).toLocaleString()}</span>
                                             ) : (
@@ -172,13 +194,69 @@ export default function BookTable({ books, selectedBooks, filters, setFilters, l
                 </table>
 
             </div>
+
+            {/* Book Details Modal */}
+            {viewedBook && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }} onClick={(e) => { e.stopPropagation(); setViewedBook(null); }}>
+                    <div className="bg-white rounded-2xl animate-fade-in shadow-2xl relative" style={{ maxWidth: 500, width: '90%', padding: 0, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ height: 120, background: 'linear-gradient(135deg, var(--color-primary), #5a0808)', position: 'relative' }}>
+                            <button style={{ position: 'absolute', top: 16, right: 16, background: 'white', border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} onClick={() => setViewedBook(null)}>
+                                <XCircle size={20} color="var(--text-secondary)" />
+                            </button>
+                            <div style={{ position: 'absolute', bottom: -30, left: 30, width: 80, height: 110, background: 'white', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 8 }}>
+                                <BookOpen size={40} color="var(--color-primary)" />
+                            </div>
+                        </div>
+
+                        <div style={{ padding: '50px 30px 30px' }}>
+                            <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>{viewedBook.title}</h2>
+                            <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>by {viewedBook.author}</p>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
+                                <div>
+                                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>ISBN / Accession</label>
+                                    <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{viewedBook.isbn || viewedBook.accessionNo}</p>
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Subject & Dept</label>
+                                    <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{viewedBook.subject} ({viewedBook.department})</p>
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Library Section</label>
+                                    <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{viewedBook.issueType}</p>
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Publisher</label>
+                                    <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{viewedBook.publisher || "-"}</p>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 20, borderTop: '1px solid var(--border-light)' }}>
+                                <div>
+                                    {viewedBook.availableCopies > 0 ? (
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-semibold"><CheckCircle size={12} /> {viewedBook.availableCopies} Available</span>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-100 text-xs font-semibold"><XCircle size={12} /> Out of Stock</span>
+                                    )}
+                                </div>
+                                <button
+                                    className="px-6 py-2 bg-[var(--color-primary)] hover:bg-[#610a0a] text-white rounded-lg transition-colors font-medium text-sm shadow-md"
+                                    onClick={() => setViewedBook(null)}
+                                >
+                                    Close Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
 
 // Helper functions for readability
 function isHeaderFilterable(col) {
-    return ["department", "issueType", "availability"].includes(col);
+    return ["department", "availability"].includes(col);
 }
 
 function renderHeaderFilter(col, filters, handleFilterChange) {
@@ -200,19 +278,7 @@ function renderHeaderFilter(col, filters, handleFilterChange) {
             </select>
         );
     }
-    if (col === "issueType") {
-        return (
-            <select
-                value={filters.issueType}
-                onChange={(e) => handleFilterChange("issueType", e.target.value)}
-                className="font-normal text-xs border rounded px-1 py-0.5 outline-none bg-white"
-            >
-                <option value="">All</option>
-                <option value="Reference">Reference</option>
-                <option value="Stack">Stack</option>
-            </select>
-        );
-    }
+
     if (col === "availability") {
         return (
             <select

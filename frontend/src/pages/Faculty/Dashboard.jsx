@@ -13,24 +13,42 @@ const Dashboard = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ----- DUMMY DATA FOR FRONTEND TESTING -----
   useEffect(() => {
-    if (!user?.facultyId) return;
+    // if (!user?.facultyId) return;
+    //
+    // setLoading(true);
+    // Promise.all([
+    //   fetch(`http://localhost:5001/api/dashboard/${user.facultyId}`).then(r => r.json()),
+    //   fetch(`http://localhost:5001/api/activity/${user.facultyId}`).then(r => r.json())
+    // ])
+    //   .then(([stats, act]) => {
+    //     setData(stats);
+    //     setActivity(act);
+    //     setLoading(false);
+    //   })
+    //   .catch(err => {
+    //     console.error('Dashboard fetch error:', err);
+    //     setError(err.message);
+    //     setLoading(false);
+    //   });
 
-    setLoading(true);
-    Promise.all([
-      fetch(`http://localhost:5001/api/dashboard/${user.facultyId}`).then(r => r.json()),
-      fetch(`http://localhost:5001/api/activity/${user.facultyId}`).then(r => r.json())
-    ])
-      .then(([stats, act]) => {
-        setData(stats);
-        setActivity(act);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Dashboard fetch error:', err);
-        setError(err.message);
-        setLoading(false);
-      });
+    setData({
+      name: 'Dr. John Doe',
+      department: 'Computer Science',
+      totalIssued: 4,
+      dueSoon: 0,
+      totalFine: 0,
+      pendingReqs: 1,
+      selectedLibrary: 'Central Library',
+      libraryFocus: 'Central Library',
+    });
+    setActivity([
+      { type: 'issue', title: 'Issued: Artificial Intelligence', sub: 'Main Library', date: '2025-03-24' },
+      { type: 'request', title: 'Requested: Advanced Robotics', sub: 'Pending', date: '2025-03-22' },
+      { type: 'return', title: 'Returned: Machine Learning', sub: 'Main Library', date: '2025-03-20' },
+    ]);
+    setLoading(false);
   }, [user?.facultyId]);
 
   const activityIconMap = {
@@ -43,7 +61,7 @@ const Dashboard = ({ user }) => {
   if (loading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 20 }}>
-        {[1,2,3].map(i => (
+        {[1, 2, 3].map(i => (
           <div key={i} style={{ height: 80, background: '#f0f2f5', borderRadius: 12, animation: 'pulse 1.5s ease infinite' }} />
         ))}
       </div>
@@ -144,7 +162,7 @@ const Dashboard = ({ user }) => {
         </div>
         <button
           className="btn"
-          onClick={() => navigate('/selection')}
+          onClick={() => navigate('/faculty/selection')}
           style={{ background: 'rgba(255,255,255,0.15)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(4px)' }}
           id="switch-library-btn"
         >
@@ -181,7 +199,7 @@ const Dashboard = ({ user }) => {
         <div className="panel">
           <div className="panel-header">
             <h3 className="panel-title">Recent Activity</h3>
-            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/history')}>
+            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/faculty/history')}>
               View All <ArrowRight size={14} />
             </button>
           </div>
@@ -234,11 +252,11 @@ const Dashboard = ({ user }) => {
           </div>
           <div style={{ padding: '8px 24px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
-              { label: 'Search for a Book',  icon: BookOpen,     path: '/search',  color: 'var(--secondary-color)', bg: 'rgba(1,137,141,0.08)' },
-              { label: 'View Issued Books',  icon: Clock,        path: '/issued',   color: '#f59e0b',                bg: 'rgba(245,158,11,0.08)' },
-              { label: 'Pay Outstanding Fine', icon: DollarSign, path: '/fines',    color: 'var(--danger)',           bg: 'rgba(239,68,68,0.08)' },
-              { label: 'Track Requests',     icon: Bookmark,     path: '/requests', color: '#8b5cf6',                bg: 'rgba(139,92,246,0.08)' },
-              { label: 'Renew Books',        icon: RefreshCw,    path: '/issued',   color: 'var(--primary-color)',   bg: 'rgba(121,12,12,0.08)' },
+              { label: 'Search for a Book', icon: BookOpen, path: '/faculty/search', color: 'var(--secondary-color)', bg: 'rgba(1,137,141,0.08)' },
+              { label: 'View Issued Books', icon: Clock, path: '/faculty/issued', color: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
+              { label: 'Pay Outstanding Fine', icon: DollarSign, path: '/faculty/fines', color: 'var(--danger)', bg: 'rgba(239,68,68,0.08)' },
+              { label: 'Track Requests', icon: Bookmark, path: '/faculty/requests', color: '#8b5cf6', bg: 'rgba(139,92,246,0.08)' },
+              { label: 'Renew Books', icon: RefreshCw, path: '/faculty/issued', color: 'var(--primary-color)', bg: 'rgba(121,12,12,0.08)' },
             ].map((action, i) => {
               const Icon = action.icon;
               return (

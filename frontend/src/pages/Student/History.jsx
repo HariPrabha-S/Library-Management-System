@@ -3,10 +3,10 @@ import { BookOpen, Clock, CheckCircle, DollarSign } from 'lucide-react';
 
 
 const tabs = [
-  { key: 'issued',      label: 'Issued History',      icon: BookOpen },
-  { key: 'returned',    label: 'Returned Books',       icon: CheckCircle },
-  { key: 'reservation', label: 'Reservation History',  icon: Clock },
-  { key: 'fines',       label: 'Fine History',         icon: DollarSign },
+  { key: 'issued', label: 'Issued History', icon: BookOpen },
+  { key: 'returned', label: 'Returned Books', icon: CheckCircle },
+  { key: 'reservation', label: 'Reservation History', icon: Clock },
+  { key: 'fines', label: 'Fine History', icon: DollarSign },
 ];
 
 const History = ({ user }) => {
@@ -14,26 +14,43 @@ const History = ({ user }) => {
   const [data, setData] = useState({ issued: [], returned: [], reservation: [], fines: [] });
   const [loading, setLoading] = useState(true);
 
+  // ----- DUMMY DATA FOR FRONTEND TESTING -----
   React.useEffect(() => {
-    if (!user?.studentId) return;
-    setLoading(true);
-    fetch(`http://localhost:5000/api/history/${user.studentId}`)
-      .then(r => r.json())
-      .then(d => { 
-        // Format all dates in all categories
-        const formatted = {
-          issued: (d.issued || []).map(r => ({ ...r, issueDate: r.issueDate ? new Date(r.issueDate).toISOString().split('T')[0] : '', dueDate: r.dueDate ? new Date(r.dueDate).toISOString().split('T')[0] : '' })),
-          returned: (d.returned || []).map(r => ({ ...r, issueDate: r.issueDate ? new Date(r.issueDate).toISOString().split('T')[0] : '', returnDate: r.returnDate ? new Date(r.returnDate).toISOString().split('T')[0] : '' })),
-          reservation: (d.reservation || []).map(r => ({ ...r, requestDate: r.requestDate ? new Date(r.requestDate).toISOString().split('T')[0] : '', resolvedDate: r.resolvedDate ? new Date(r.resolvedDate).toISOString().split('T')[0] : '' })),
-          fines: (d.fines || []).map(r => ({ ...r, paidDate: r.paidDate ? new Date(r.paidDate).toISOString().split('T')[0] : '' })),
-        };
-        setData(formatted); 
-        setLoading(false); 
-      })
-      .catch((err) => {
-        console.error('History fetch error:', err);
-        setLoading(false);
-      });
+    // if (!user?.studentId) return;
+    // setLoading(true);
+    // fetch(`http://localhost:5000/api/history/${user.studentId}`)
+    //   .then(r => r.json())
+    //   .then(d => { 
+    //     const formatted = {
+    //       issued: (d.issued || []).map(r => ({ ...r, issueDate: r.issueDate ? new Date(r.issueDate).toISOString().split('T')[0] : '', dueDate: r.dueDate ? new Date(r.dueDate).toISOString().split('T')[0] : '' })),
+    //       returned: (d.returned || []).map(r => ({ ...r, issueDate: r.issueDate ? new Date(r.issueDate).toISOString().split('T')[0] : '', returnDate: r.returnDate ? new Date(r.returnDate).toISOString().split('T')[0] : '' })),
+    //       reservation: (d.reservation || []).map(r => ({ ...r, requestDate: r.requestDate ? new Date(r.requestDate).toISOString().split('T')[0] : '', resolvedDate: r.resolvedDate ? new Date(r.resolvedDate).toISOString().split('T')[0] : '' })),
+    //       fines: (d.fines || []).map(r => ({ ...r, paidDate: r.paidDate ? new Date(r.paidDate).toISOString().split('T')[0] : '' })),
+    //     };
+    //     setData(formatted); 
+    //     setLoading(false); 
+    //   })
+    //   .catch((err) => {
+    //     console.error('History fetch error:', err);
+    //     setLoading(false);
+    //   });
+
+    const dummyData = {
+      issued: [
+        { id: 1, title: 'Code Complete', author: 'Steve McConnell', issueDate: '2025-03-12', dueDate: '2025-03-26', library: 'Main' }
+      ],
+      returned: [
+        { id: 2, title: 'Clean Code', author: 'Robert C. Martin', issueDate: '2025-02-15', returnDate: '2025-03-08', fineAmount: 0, status: 'On Time' }
+      ],
+      reservation: [
+        { id: 3, bookName: 'The Pragmatic Programmer', requestDate: '2025-03-15', resolvedDate: '', status: 'Pending' }
+      ],
+      fines: [
+        { id: 4, title: 'Database Systems', daysOverdue: 2, totalFine: 10, paidDate: '2025-01-20', status: 'Paid' }
+      ]
+    };
+    setData(dummyData);
+    setLoading(false);
   }, [user?.studentId]);
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>Loading history...</div>;

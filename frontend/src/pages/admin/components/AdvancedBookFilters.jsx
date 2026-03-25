@@ -82,17 +82,6 @@ export default function AdvancedBookFilters({ filters, setFilters }) {
                     <option value="MECH">MECH</option>
                 </select>
 
-                {/* Issue Type */}
-                <select
-                    value={filters.issueType}
-                    onChange={(e) => handleChange("issueType", e.target.value)}
-                    className="border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-[var(--color-primary)] outline-none transition"
-                >
-                    <option value="">All Issue Types</option>
-                    <option value="Issuable">Issuable</option>
-                    <option value="Reference">Reference</option>
-                    <option value="Overnight">Overnight</option>
-                </select>
 
                 {/* Availability */}
                 <select

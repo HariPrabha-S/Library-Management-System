@@ -12,41 +12,66 @@ import {
   LogOut,
   Globe,
   FileEdit,
-  BookOpen
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
-import './Sidebar.css';
 
 const navItems = [
-  { name: 'Dashboard',          path: '/dashboard',    icon: LayoutDashboard },
-  { name: 'Library Selection',  path: '/selection',    icon: Library },
-  { name: 'Search Books',       path: '/search',       icon: Search },
-  { name: 'My Issued Books',    path: '/issued',       icon: BookMarked },
-  { name: 'Faculty Journals',   path: '/journals',     icon: FileEdit },
-  { name: 'Digital Resources',  path: '/resources',    icon: Globe },
-  { name: 'Fine Management',    path: '/fines',        icon: BadgeDollarSign },
-  { name: 'Reservations',       path: '/requests',     icon: ClipboardList },
-  { name: 'History',            path: '/history',      icon: History },
-  { name: 'Profile',            path: '/profile',      icon: User },
+  { name: 'Dashboard', path: '/faculty/dashboard', icon: LayoutDashboard },
+  { name: 'Library Selection', path: '/faculty/selection', icon: Library },
+  { name: 'Search Books', path: '/faculty/search', icon: Search },
+  { name: 'My Issued Books', path: '/faculty/issued', icon: BookMarked },
+  { name: 'Faculty Journals', path: '/faculty/journals', icon: FileEdit },
+  { name: 'Digital Resources', path: '/faculty/resources', icon: Globe },
+  { name: 'Fine Management', path: '/faculty/fines', icon: BadgeDollarSign },
+  { name: 'Reservations', path: '/faculty/requests', icon: ClipboardList },
+  { name: 'History', path: '/faculty/history', icon: History },
+  { name: 'Profile', path: '/faculty/profile', icon: User },
 ];
 
-const Sidebar = ({ onLogout }) => {
+const Sidebar = ({ onLogout, collapsed, setCollapsed }) => {
   const navigate = useNavigate();
 
+  const handleLogout = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    if (onLogout) onLogout();
+    navigate('/', { replace: true });
+  };
+
   return (
-    <aside className="sidebar">
+    <div
+      className="no-scrollbar"
+      style={{
+        width: collapsed ? 72 : 248,
+        minWidth: collapsed ? 72 : 248,
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        height: '100vh',
+        background: 'linear-gradient(180deg, #790c0c 0%, #5a0909 100%)',
+        display: 'flex',
+        flexDirection: 'column',
+        zIndex: 200,
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        transition: 'width 0.3s cubic-bezier(0.4,0,0.2,1)',
+        boxShadow: '4px 0 24px rgba(121,12,12,0.2)',
+      }}
+    >
       {/* Brand */}
-      <div className="sidebar-brand">
+      <div className="sidebar-brand" style={{ justifyContent: collapsed ? 'center' : undefined }}>
         <div className="brand-logo">
           <BookOpen size={22} color="white" />
         </div>
-        <div>
-          <div className="brand-name">LMS</div>
-          <div className="brand-tagline">Faculty Portal</div>
-        </div>
+        {!collapsed && (
+          <div>
+            <div className="brand-name">LMS</div>
+            <div className="brand-tagline">Faculty Portal</div>
+          </div>
+        )}
       </div>
-
-      {/* Nav Section Label */}
-      <div className="nav-section-label">Main Menu</div>
 
       {/* Nav Links */}
       <nav className="nav-menu">
@@ -54,22 +79,64 @@ const Sidebar = ({ onLogout }) => {
           <NavLink
             key={path}
             to={path}
+            title={collapsed ? name : undefined}
             className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+            style={{ justifyContent: collapsed ? 'center' : undefined }}
           >
             <span className="nav-icon"><Icon size={18} /></span>
-            <span className="nav-link-text">{name}</span>
+            {!collapsed && <span className="nav-link-text">{name}</span>}
           </NavLink>
         ))}
       </nav>
 
-      {/* Footer / Logout */}
+      {/* Footer */}
       <div className="sidebar-footer">
-        <button className="logout-btn" onClick={onLogout}>
+        {/* Logout */}
+        <button
+          className="logout-btn"
+          onClick={handleLogout}
+          title={collapsed ? 'Logout' : undefined}
+          style={{ justifyContent: 'center' }}
+        >
           <LogOut size={18} />
-          <span>Logout</span>
+          {!collapsed && <span>Logout</span>}
+        </button>
+
+        {/* Collapse Toggle */}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: collapsed ? 'center' : 'center',
+            gap: collapsed ? 0 : 10,
+            marginTop: 8,
+            padding: '10px 14px',
+            background: 'rgba(255,255,255,0.08)',
+            color: 'rgba(255,255,255,0.75)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            borderRadius: 10,
+            fontFamily: "'Inter', sans-serif",
+            fontSize: '0.82rem',
+            fontWeight: 600,
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--secondary-color)'; e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'var(--secondary-color)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.75)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
+        >
+          {collapsed ? <ChevronRight size={18} /> : (
+            <>
+              <ChevronLeft size={16} />
+              <span>Collapse</span>
+            </>
+          )}
         </button>
       </div>
-    </aside>
+    </div>
   );
 };
 

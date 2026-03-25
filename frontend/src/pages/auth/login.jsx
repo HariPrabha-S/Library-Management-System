@@ -23,12 +23,12 @@ export default function Login() {
                 <div>
 
                     {/* 🔥 Added font-heading */}
-                    <h1 className="text-3xl font-heading font-bold mb-6">
+                    <h1 className="text-4xl font-heading font-bold mb-6">
                         Library Management System
                     </h1>
 
                     {/* 🔥 Added font-heading + bigger for serif impact */}
-                    <h2 className="text-5xl font-heading font-bold leading-tight mb-8">
+                    <h2 className="text-4xl font-heading font-bold leading-tight mb-8">
                         Organizing Knowledge,
                         <br />
                         Empowering Learning
@@ -46,7 +46,7 @@ export default function Login() {
                 <div className="w-full max-w-md bg-white p-10 rounded-2xl shadow-xl">
 
                     {/* 🔥 Added font-heading */}
-                    <h2 className="text-3xl font-heading font-bold text-center mb-2">
+                    <h2 className="text-2xl font-heading font-bold text-center mb-2">
                         Welcome Back
                     </h2>
 
@@ -70,7 +70,7 @@ export default function Login() {
                                 <option value="admin">Admin</option>
                             </select>
                         </div>
-        
+
                         <div>
                             <label className="block text-sm font-medium mb-1">
                                 Register Number

@@ -3,14 +3,8 @@ import AdminSidebar from "./components/Sidebar";
 import { Outlet, useLocation } from "react-router-dom";
 
 export default function AdminLayout() {
-  const [collapsed, setCollapsed] = useState(() => {
-    const stored = localStorage.getItem("sidebar_collapsed");
-    return stored ? JSON.parse(stored) : false;
-  });
-
-  const [active, setActive] = useState(() => {
-    return localStorage.getItem("sidebar_active") || 'dashboard';
-  });
+  const [active, setActive] = useState('dashboard');
+  const [collapsed, setCollapsed] = useState(false);
 
   const location = useLocation();
 
@@ -25,33 +19,27 @@ export default function AdminLayout() {
     else setActive("dashboard");
   }, [location]);
 
-  useEffect(() => {
-    localStorage.setItem("sidebar_collapsed", JSON.stringify(collapsed));
-  }, [collapsed]);
-
-  useEffect(() => {
-    localStorage.setItem("sidebar_active", active);
-  }, [active]);
-
   return (
-    <div className="bg-gray-100 min-h-screen">
-
+    <div className="min-h-screen" style={{ background: 'var(--bg-secondary)' }}>
       <div className="no-print">
         <AdminSidebar
-          collapsed={collapsed}
-          setCollapsed={setCollapsed}
           active={active}
           setActive={setActive}
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
         />
       </div>
 
       <div
-        className={`transition-all duration-300 ease-in-out
-        ${collapsed ? "ml-20" : "ml-64"} p-8`}
+        style={{
+          marginLeft: collapsed ? 72 : 248,
+          padding: 32,
+          minHeight: '100vh',
+          transition: 'margin-left 0.3s cubic-bezier(0.4,0,0.2,1)',
+        }}
       >
         <Outlet />
       </div>
-
     </div>
   );
 }

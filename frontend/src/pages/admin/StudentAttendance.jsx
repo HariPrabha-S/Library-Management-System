@@ -45,7 +45,7 @@ export default function StudentAttendance() {
             {/* HEADER */}
             <div className="flex justify-between items-center mb-10">
                 <div>
-                    <h1 className="font-heading text-4xl font-bold text-[var(--color-primary)]">
+                    <h1 className="font-heading text-3xl font-bold text-[var(--color-primary)]">
                         Attendance Scanner
                     </h1>
                     <p className="text-gray-500 text-sm mt-1">Connect your barcode scanner to track student entry/exit</p>
@@ -56,8 +56,8 @@ export default function StudentAttendance() {
                     <button
                         onClick={() => setMode("IN")}
                         className={`flex items-center gap-2 px-6 py-2.5 rounded-xl transition-all duration-300 font-bold ${mode === "IN"
-                                ? "bg-teal-500 text-white shadow-md shadow-teal-100"
-                                : "text-gray-400 hover:bg-gray-50"
+                            ? "bg-teal-500 text-white shadow-md shadow-teal-100"
+                            : "text-gray-400 hover:bg-gray-50"
                             }`}
                     >
                         <FiArrowRight /> ENTRY
@@ -65,8 +65,8 @@ export default function StudentAttendance() {
                     <button
                         onClick={() => setMode("OUT")}
                         className={`flex items-center gap-2 px-6 py-2.5 rounded-xl transition-all duration-300 font-bold ${mode === "OUT"
-                                ? "bg-red-500 text-white shadow-md shadow-red-100"
-                                : "text-gray-400 hover:bg-gray-50"
+                            ? "bg-red-500 text-white shadow-md shadow-red-100"
+                            : "text-gray-400 hover:bg-gray-50"
                             }`}
                     >
                         <FiArrowLeft /> EXIT

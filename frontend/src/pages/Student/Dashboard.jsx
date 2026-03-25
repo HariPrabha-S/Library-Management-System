@@ -13,25 +13,43 @@ const Dashboard = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ----- DUMMY DATA FOR FRONTEND TESTING -----
   useEffect(() => {
-    if (!user?.studentId) return;
+    // if (!user?.studentId) return;
+    // setLoading(true);
+    // Promise.all([
+    //   fetch(`http://localhost:5000/api/dashboard/${user.studentId}`).then(r => r.json()),
+    //   fetch(`http://localhost:5000/api/activity/${user.studentId}`).then(r => r.json())
+    // ])
+    //   .then(([stats, act]) => {
+    //     setData(stats);
+    //     setActivity(act);
+    //     setLoading(false);
+    //   })
+    //   .catch(err => {
+    //     console.error('Dashboard fetch error:', err);
+    //     setError(err.message);
+    //     setLoading(false);
+    //   });
 
-    setLoading(true);
-    // Fetch stats and activity in parallel
-    Promise.all([
-      fetch(`http://localhost:5000/api/dashboard/${user.studentId}`).then(r => r.json()),
-      fetch(`http://localhost:5000/api/activity/${user.studentId}`).then(r => r.json())
-    ])
-      .then(([stats, act]) => {
-        setData(stats);
-        setActivity(act);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Dashboard fetch error:', err);
-        setError(err.message);
-        setLoading(false);
-      });
+    setData({
+      name: 'Suganya R',
+      department: 'B.E. CSE',
+      semester: 'Semester VI',
+      totalIssued: 3,
+      dueSoon: 1,
+      totalFine: 25,
+      pendingReqs: 2,
+      selectedLibrary: 'Main Library',
+      libraryFocus: 'Main Library',
+    });
+    setActivity([
+      { type: 'issue', title: 'Issued: Code Complete', sub: 'Main Library', date: '2025-03-12' },
+      { type: 'return', title: 'Returned: Clean Code', sub: 'Dept. Library', date: '2025-03-08' },
+      { type: 'overdue', title: 'Overdue: Design Patterns', sub: 'Due 2025-03-01', date: '2025-03-01' },
+      { type: 'request', title: 'Requested: The Pragmatic Programmer', sub: 'Pending', date: '2025-03-15' },
+    ]);
+    setLoading(false);
   }, [user?.studentId]);
 
   const activityIconMap = {
@@ -44,7 +62,7 @@ const Dashboard = ({ user }) => {
   if (loading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 20 }}>
-        {[1,2,3].map(i => (
+        {[1, 2, 3].map(i => (
           <div key={i} style={{ height: 80, background: '#f0f2f5', borderRadius: 12, animation: 'pulse 1.5s ease infinite' }} />
         ))}
       </div>
@@ -145,7 +163,7 @@ const Dashboard = ({ user }) => {
         </div>
         <button
           className="btn"
-          onClick={() => navigate('/selection')}
+          onClick={() => navigate('/student/selection')}
           style={{ background: 'rgba(255,255,255,0.15)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(4px)' }}
           id="switch-library-btn"
         >
@@ -182,7 +200,7 @@ const Dashboard = ({ user }) => {
         <div className="panel">
           <div className="panel-header">
             <h3 className="panel-title">Recent Activity</h3>
-            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/history')}>
+            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/student/history')}>
               View All <ArrowRight size={14} />
             </button>
           </div>
@@ -235,11 +253,11 @@ const Dashboard = ({ user }) => {
           </div>
           <div style={{ padding: '8px 24px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
-              { label: 'Search for a Book',  icon: BookOpen,     path: '/search',  color: 'var(--secondary-color)', bg: 'rgba(1,137,141,0.08)' },
-              { label: 'View Issued Books',  icon: Clock,        path: '/issued',   color: '#f59e0b',                bg: 'rgba(245,158,11,0.08)' },
-              { label: 'Pay Outstanding Fine', icon: DollarSign, path: '/fines',    color: 'var(--danger)',           bg: 'rgba(239,68,68,0.08)' },
-              { label: 'Track Requests',     icon: Bookmark,     path: '/requests', color: '#8b5cf6',                bg: 'rgba(139,92,246,0.08)' },
-              { label: 'Renew Books',        icon: RefreshCw,    path: '/issued',   color: 'var(--primary-color)',   bg: 'rgba(121,12,12,0.08)' },
+              { label: 'Search for a Book', icon: BookOpen, path: '/student/search', color: 'var(--secondary-color)', bg: 'rgba(1,137,141,0.08)' },
+              { label: 'View Issued Books', icon: Clock, path: '/student/issued', color: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
+              { label: 'Pay Outstanding Fine', icon: DollarSign, path: '/student/fines', color: 'var(--danger)', bg: 'rgba(239,68,68,0.08)' },
+              { label: 'Track Requests', icon: Bookmark, path: '/student/requests', color: '#8b5cf6', bg: 'rgba(139,92,246,0.08)' },
+              { label: 'Renew Books', icon: RefreshCw, path: '/student/issued', color: 'var(--primary-color)', bg: 'rgba(121,12,12,0.08)' },
             ].map((action, i) => {
               const Icon = action.icon;
               return (

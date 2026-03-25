@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Globe, FileText, Video, BookOpen, Download, ExternalLink } from 'lucide-react';
-import './DigitalResources.css';
 
 const DigitalResources = () => {
   const [resources, setResources] = useState([]);
@@ -31,7 +30,7 @@ const DigitalResources = () => {
     }
   };
 
-  const filteredResources = resources.filter(res => 
+  const filteredResources = resources.filter(res =>
     res.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     res.author.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -55,9 +54,9 @@ const DigitalResources = () => {
         </div>
         <div className="search-bar">
           <Search className="search-icon" size={20} />
-          <input 
-            type="text" 
-            placeholder="Search by title or author..." 
+          <input
+            type="text"
+            placeholder="Search by title or author..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -66,7 +65,7 @@ const DigitalResources = () => {
 
       <div className="filter-tags">
         {['All', 'E-Book', 'Research Paper', 'Journal', 'Video Lecture'].map(type => (
-          <button 
+          <button
             key={type}
             className={`filter-tag ${filterType === type ? 'active' : ''}`}
             onClick={() => setFilterType(type)}

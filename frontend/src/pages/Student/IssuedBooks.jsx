@@ -3,44 +3,54 @@ import { BookOpen, RefreshCw, Upload, AlertCircle, CalendarDays } from 'lucide-r
 
 
 const IssuedBooks = ({ user }) => {
-  const [books, setBooks]   = useState([]);
+  const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
 
+  // ----- DUMMY DATA FOR FRONTEND TESTING -----
   useEffect(() => {
-    if (!user?.studentId) return;
-    setLoading(true);
-    fetch(`http://localhost:5000/api/records/${user.studentId}`)
-      .then(r => r.json())
-      .then(data => { 
-        // Format dates from backend (ISO strings usually) to short format
-        const formattedData = data.map(b => ({
-          ...b,
-          issueDate: b.issueDate ? new Date(b.issueDate).toISOString().split('T')[0] : '',
-          dueDate: b.dueDate ? new Date(b.dueDate).toISOString().split('T')[0] : ''
-        }));
-        setBooks(formattedData); 
-        setLoading(false); 
-      })
-      .catch((err) => {
-        console.error('Records fetch error:', err);
-        setLoading(false);
-      });
+    // if (!user?.studentId) return;
+    // setLoading(true);
+    // fetch(`http://localhost:5000/api/records/${user.studentId}`)
+    //   .then(r => r.json())
+    //   .then(data => { 
+    //     const formattedData = data.map(b => ({
+    //       ...b,
+    //       issueDate: b.issueDate ? new Date(b.issueDate).toISOString().split('T')[0] : '',
+    //       dueDate: b.dueDate ? new Date(b.dueDate).toISOString().split('T')[0] : ''
+    //     }));
+    //     setBooks(formattedData); 
+    //     setLoading(false); 
+    //   })
+    //   .catch((err) => {
+    //     console.error('Records fetch error:', err);
+    //     setLoading(false);
+    //   });
+
+    const dummyBooks = [
+      { id: 1, title: 'Code Complete', author: 'Steve McConnell', issueDate: '2025-03-12', dueDate: '2025-03-26', library: 'Main', status: 'Active', renewAllowed: true },
+      { id: 2, title: 'Design Patterns', author: 'Erich Gamma', issueDate: '2025-02-15', dueDate: '2025-03-01', library: 'Dept', status: 'Overdue', renewAllowed: false },
+    ];
+    setBooks(dummyBooks);
+    setLoading(false);
   }, [user?.studentId]);
 
   const handleRenew = (id) => {
-    fetch(`http://localhost:5000/api/books/renew/${id}`, { method: 'POST' })
-      .then(r => {
-        if (!r.ok) return r.json().then(e => { throw new Error(e.message); });
-        return r.json();
-      })
-      .then(d => {
-        alert(d.message);
-        setBooks(prev => prev.map(b => b.id === id ? { ...b, dueDate: d.newDueDate, status: 'Active' } : b));
-      })
-      .catch((err) => {
-        alert(err.message || 'Renewal failed');
-      });
+    // fetch(`http://localhost:5000/api/books/renew/${id}`, { method: 'POST' })
+    //   .then(r => {
+    //     if (!r.ok) return r.json().then(e => { throw new Error(e.message); });
+    //     return r.json();
+    //   })
+    //   .then(d => {
+    //     alert(d.message);
+    //     setBooks(prev => prev.map(b => b.id === id ? { ...b, dueDate: d.newDueDate, status: 'Active' } : b));
+    //   })
+    //   .catch((err) => {
+    //     alert(err.message || 'Renewal failed');
+    //   });
+
+    alert('Book renewed successfully (Dummy)');
+    setBooks(prev => prev.map(b => b.id === id ? { ...b, dueDate: '2025-04-10', status: 'Active' } : b));
   };
 
   const summary = {
@@ -56,9 +66,9 @@ const IssuedBooks = ({ user }) => {
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
         {[
-          { label: 'Total Issued',  value: summary.total,   color: 'var(--secondary-color)', bg: 'rgba(1,137,141,0.08)' },
-          { label: 'Active',        value: summary.active,  color: 'var(--success)',          bg: 'var(--success-light)' },
-          { label: 'Overdue',       value: summary.overdue, color: 'var(--danger)',            bg: 'var(--danger-light)' },
+          { label: 'Total Issued', value: summary.total, color: 'var(--secondary-color)', bg: 'rgba(1,137,141,0.08)' },
+          { label: 'Active', value: summary.active, color: 'var(--success)', bg: 'var(--success-light)' },
+          { label: 'Overdue', value: summary.overdue, color: 'var(--danger)', bg: 'var(--danger-light)' },
         ].map((s, i) => (
           <div key={i} style={{ background: 'white', borderRadius: 12, padding: '18px 22px', boxShadow: 'var(--shadow-md)', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ width: 48, height: 48, background: s.bg, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

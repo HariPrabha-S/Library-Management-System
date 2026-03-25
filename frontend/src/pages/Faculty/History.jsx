@@ -3,10 +3,10 @@ import { BookOpen, Clock, CheckCircle, DollarSign } from 'lucide-react';
 
 
 const tabs = [
-  { key: 'issued',      label: 'Issued History',      icon: BookOpen },
-  { key: 'returned',    label: 'Returned Books',       icon: CheckCircle },
-  { key: 'reservation', label: 'Reservation History',  icon: Clock },
-  { key: 'fines',       label: 'Fine History',         icon: DollarSign },
+  { key: 'issued', label: 'Issued History', icon: BookOpen },
+  { key: 'returned', label: 'Returned Books', icon: CheckCircle },
+  { key: 'reservation', label: 'Reservation History', icon: Clock },
+  { key: 'fines', label: 'Fine History', icon: DollarSign },
 ];
 
 const History = ({ user }) => {
@@ -14,25 +14,41 @@ const History = ({ user }) => {
   const [data, setData] = useState({ issued: [], returned: [], reservation: [], fines: [] });
   const [loading, setLoading] = useState(true);
 
+  // ----- DUMMY DATA FOR FRONTEND TESTING -----
   React.useEffect(() => {
-    if (!user?.facultyId) return;
-    setLoading(true);
-    fetch(`http://localhost:5001/api/history/${user.facultyId}`)
-      .then(r => r.json())
-      .then(d => { 
-        const formatted = {
-          issued: (d.issued || []).map(r => ({ ...r, issueDate: r.issueDate ? new Date(r.issueDate).toISOString().split('T')[0] : '', dueDate: r.dueDate ? new Date(r.dueDate).toISOString().split('T')[0] : '' })),
-          returned: (d.returned || []).map(r => ({ ...r, issueDate: r.issueDate ? new Date(r.issueDate).toISOString().split('T')[0] : '', returnDate: r.returnDate ? new Date(r.returnDate).toISOString().split('T')[0] : '' })),
-          reservation: (d.reservation || []).map(r => ({ ...r, requestDate: r.requestDate ? new Date(r.requestDate).toISOString().split('T')[0] : '', resolvedDate: r.resolvedDate ? new Date(r.resolvedDate).toISOString().split('T')[0] : '' })),
-          fines: (d.fines || []).map(r => ({ ...r, paidDate: r.paidDate ? new Date(r.paidDate).toISOString().split('T')[0] : '' })),
-        };
-        setData(formatted); 
-        setLoading(false); 
-      })
-      .catch((err) => {
-        console.error('History fetch error:', err);
-        setLoading(false);
-      });
+    // if (!user?.facultyId) return;
+    // setLoading(true);
+    // fetch(`http://localhost:5001/api/history/${user.facultyId}`)
+    //   .then(r => r.json())
+    //   .then(d => { 
+    //     const formatted = {
+    //       issued: (d.issued || []).map(r => ({ ...r, issueDate: r.issueDate ? new Date(r.issueDate).toISOString().split('T')[0] : '', dueDate: r.dueDate ? new Date(r.dueDate).toISOString().split('T')[0] : '' })),
+    //       returned: (d.returned || []).map(r => ({ ...r, issueDate: r.issueDate ? new Date(r.issueDate).toISOString().split('T')[0] : '', returnDate: r.returnDate ? new Date(r.returnDate).toISOString().split('T')[0] : '' })),
+    //       reservation: (d.reservation || []).map(r => ({ ...r, requestDate: r.requestDate ? new Date(r.requestDate).toISOString().split('T')[0] : '', resolvedDate: r.resolvedDate ? new Date(r.resolvedDate).toISOString().split('T')[0] : '' })),
+    //       fines: (d.fines || []).map(r => ({ ...r, paidDate: r.paidDate ? new Date(r.paidDate).toISOString().split('T')[0] : '' })),
+    //     };
+    //     setData(formatted); 
+    //     setLoading(false); 
+    //   })
+    //   .catch((err) => {
+    //     console.error('History fetch error:', err);
+    //     setLoading(false);
+    //   });
+
+    const dummyData = {
+      issued: [
+        { id: 101, title: 'Artificial Intelligence', author: 'Stuart Russell', issueDate: '2025-03-24', dueDate: '2025-04-24', library: 'Main' }
+      ],
+      returned: [
+        { id: 102, title: 'Machine Learning', author: 'Tom Mitchell', issueDate: '2025-02-20', returnDate: '2025-03-20', fineAmount: 0, status: 'On Time' }
+      ],
+      reservation: [
+        { id: 103, bookName: 'Advanced Robotics', requestDate: '2025-03-22', resolvedDate: '', status: 'Pending' }
+      ],
+      fines: []
+    };
+    setData(dummyData);
+    setLoading(false);
   }, [user?.facultyId]);
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>Loading history...</div>;

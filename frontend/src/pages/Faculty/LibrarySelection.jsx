@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, School, ArrowRight, CheckCircle } from 'lucide-react';
-import './LibrarySelection.css';
 
 const libraries = [
   {
@@ -11,7 +10,7 @@ const libraries = [
     tag: 'Central Resource',
     description: 'Access the full university catalog with 50,000+ books, journals, research papers, and multimedia resources across all disciplines.',
     features: ['50,000+ Books', 'All Departments', 'Research Journals', 'OPAC Search'],
-    path: '/search',
+    path: '/faculty/search',
     stats: { books: '50,000+', floors: 4, sections: 12 },
     accentColor: 'var(--primary-color)',
     bgGradient: 'linear-gradient(135deg, rgba(121,12,12,0.06) 0%, rgba(121,12,12,0.02) 100%)',
@@ -24,7 +23,7 @@ const libraries = [
     tag: 'Course Resources',
     description: 'Find subject-specific textbooks, semester-wise materials, and short-term issue books curated for your department.',
     features: ['Course Textbooks', 'Semester-wise', 'Short-term Issue', 'Department Only'],
-    path: '/dept-library',
+    path: '/faculty/dept-library',
     stats: { books: '8,000+', floors: 1, sections: 6 },
     accentColor: 'var(--secondary-color)',
     bgGradient: 'linear-gradient(135deg, rgba(1,137,141,0.06) 0%, rgba(1,137,141,0.02) 100%)',

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FiDollarSign, FiSearch, FiCheckCircle,FiAlertCircle } from "react-icons/fi";
+import { FiDollarSign, FiSearch, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 
 export default function ManageFines() {
     const [fines, setFines] = useState([]);
@@ -45,15 +45,15 @@ export default function ManageFines() {
 
             <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                    <table className="w-full text-left min-w-[800px]">
                         <thead>
-                            <tr className="border-b text-gray-700 text-sm font-semibold">
-                                <th className="py-3">Name</th>
-                                <th className="py-3">Type</th>
-                                <th className="py-3">Reason</th>
-                                <th className="py-3">Amount (₹)</th>
-                                <th className="py-3">Status</th>
-                                <th className="py-3">Action</th>
+                            <tr className="border-b border-gray-300 bg-gray-50 text-gray-700 text-sm font-semibold leading-tight">
+                                <th className="py-4 px-3 whitespace-nowrap">Name</th>
+                                <th className="py-4 px-3 whitespace-nowrap">Type</th>
+                                <th className="py-4 px-3 whitespace-nowrap">Reason</th>
+                                <th className="py-4 px-3 whitespace-nowrap">Amount (₹)</th>
+                                <th className="py-4 px-3 whitespace-nowrap">Status</th>
+                                <th className="py-4 px-3 whitespace-nowrap">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -65,25 +65,27 @@ export default function ManageFines() {
                                 </tr>
                             ) : (
                                 filteredFines.map(fine => (
-                                    <tr key={fine.id} className="border-b hover:bg-gray-50">
-                                        <td className="py-3 font-medium">{fine.name}</td>
-                                        <td className="py-3">
+                                    <tr key={fine.id} className="border-b border-gray-200 last:border-none hover:bg-gray-50 transition cursor-pointer text-sm leading-tight text-gray-600 group">
+                                        <td className="py-4 px-3 whitespace-nowrap align-middle">
+                                            <span className="font-semibold text-gray-900 group-hover:text-[var(--color-primary)] transition-colors">{fine.name}</span>
+                                        </td>
+                                        <td className="py-4 px-3 whitespace-nowrap align-middle">
                                             <span className={`px-2 py-1 rounded-md text-xs font-bold ${fine.type === 'Student' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
                                                 {fine.type}
                                             </span>
                                         </td>
-                                        <td className="py-3 text-gray-600">{fine.reason}</td>
-                                        <td className="py-3 font-bold text-red-600">₹{fine.amount}</td>
-                                        <td className="py-3">
-                                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${fine.status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                        <td className="py-4 px-3 whitespace-nowrap align-middle text-gray-600">{fine.reason}</td>
+                                        <td className="py-4 px-3 whitespace-nowrap align-middle font-bold text-red-600">₹{fine.amount}</td>
+                                        <td className="py-4 px-3 whitespace-nowrap align-middle">
+                                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${fine.status === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
                                                 {fine.status}
                                             </span>
                                         </td>
-                                        <td className="py-3">
+                                        <td className="py-4 px-3 whitespace-nowrap align-middle">
                                             {fine.status === 'Unpaid' ? (
                                                 <button
                                                     onClick={() => handleClearFine(fine.id)}
-                                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-600 hover:text-white rounded-lg text-xs font-bold transition-colors"
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-lg text-xs font-bold transition-colors"
                                                 >
                                                     <FiCheckCircle size={14} /> Clear Fine
                                                 </button>

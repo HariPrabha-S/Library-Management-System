@@ -13,7 +13,7 @@ export default function BookReports({ isOpen, onClose, filters, setFilters, onPr
         { name: "Acc. No / Title / Author / Price", columns: ["accessionNo", "title", "author", "price"] },
         { name: "Sl. No / Acc. No / Title / Author", columns: ["accessionNo", "title", "author"] },
         { name: "Accession No. List", columns: ["accessionNo"] },
-        { name: "Full Details", columns: ["accessionNo", "title", "subtitle", "author", "publisher", "edition", "yearOfPublishing", "department", "subject", "issueType", "price", "purchaseDate", "availability"] },
+        { name: "Full Details", columns: ["accessionNo", "title", "subtitle", "author", "publisher", "edition", "yearOfPublishing", "department", "subject", "price", "purchaseDate", "availability"] },
         { name: "Acc. No / Title / Author / Edition / Publisher", columns: ["accessionNo", "title", "author", "edition", "publisher"] },
         { name: "Acc. No / Title / Author / Sub Title / Gift Information", columns: ["accessionNo", "title", "author", "subtitle"] },
         { name: "Acquisition Report", columns: ["purchaseDate", "accessionNo", "title", "author", "publisher", "price", "department"] },

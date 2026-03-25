@@ -3,37 +3,46 @@ import { Clock, CheckCircle, XCircle, BookOpen, CalendarDays } from 'lucide-reac
 
 
 const statusConfig = {
-  Pending:  { class: 'badge-warning',   icon: Clock,        label: 'Pending',  color: '#b45309' },
-  Approved: { class: 'badge-success',   icon: CheckCircle,  label: 'Approved', color: 'var(--success)' },
-  Rejected: { class: 'badge-danger',    icon: XCircle,      label: 'Rejected', color: 'var(--danger)' },
+  Pending: { class: 'badge-warning', icon: Clock, label: 'Pending', color: '#b45309' },
+  Approved: { class: 'badge-success', icon: CheckCircle, label: 'Approved', color: 'var(--success)' },
+  Rejected: { class: 'badge-danger', icon: XCircle, label: 'Rejected', color: 'var(--danger)' },
 };
 
 const Requests = ({ user }) => {
   const [requests, setRequests] = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [filter, setFilter]     = useState('All');
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('All');
 
+  // ----- DUMMY DATA FOR FRONTEND TESTING -----
   useEffect(() => {
-    if (!user?.studentId) return;
-    setLoading(true);
-    fetch(`http://localhost:5000/api/requests/${user.studentId}`)
-      .then(r => r.json())
-      .then(data => { 
-        const formatted = data.map(r => ({
-          ...r,
-          requestDate: r.requestDate ? new Date(r.requestDate).toISOString().split('T')[0] : ''
-        }));
-        setRequests(formatted); 
-        setLoading(false); 
-      })
-      .catch((err) => {
-        console.error('Requests fetch error:', err);
-        setLoading(false);
-      });
+    // if (!user?.studentId) return;
+    // setLoading(true);
+    // fetch(`http://localhost:5000/api/requests/${user.studentId}`)
+    //   .then(r => r.json())
+    //   .then(data => { 
+    //     const formatted = data.map(r => ({
+    //       ...r,
+    //       requestDate: r.requestDate ? new Date(r.requestDate).toISOString().split('T')[0] : ''
+    //     }));
+    //     setRequests(formatted); 
+    //     setLoading(false); 
+    //   })
+    //   .catch((err) => {
+    //     console.error('Requests fetch error:', err);
+    //     setLoading(false);
+    //   });
+
+    const dummyRequests = [
+      { id: 1, bookName: 'Artificial Intelligence: A Modern Approach', library: 'Main', requestDate: '2025-03-20', status: 'Pending' },
+      { id: 2, bookName: 'Introduction to Algorithms', library: 'Dept', requestDate: '2025-03-15', status: 'Approved' },
+      { id: 3, bookName: 'Cracking the Coding Interview', library: 'Main', requestDate: '2025-03-10', status: 'Rejected' },
+    ];
+    setRequests(dummyRequests);
+    setLoading(false);
   }, [user?.studentId]);
 
   const counts = {
-    Pending:  requests.filter(r => r.status === 'Pending').length,
+    Pending: requests.filter(r => r.status === 'Pending').length,
     Approved: requests.filter(r => r.status === 'Approved').length,
     Rejected: requests.filter(r => r.status === 'Rejected').length,
   };
@@ -45,9 +54,9 @@ const Requests = ({ user }) => {
       {/* Status Summary */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
         {[
-          { label: 'Pending',  count: counts.Pending,  icon: Clock,       bg: 'rgba(245,158,11,0.1)',   color: '#d97706' },
-          { label: 'Approved', count: counts.Approved, icon: CheckCircle, bg: 'var(--success-light)',   color: 'var(--success)' },
-          { label: 'Rejected', count: counts.Rejected, icon: XCircle,     bg: 'var(--danger-light)',    color: 'var(--danger)' },
+          { label: 'Pending', count: counts.Pending, icon: Clock, bg: 'rgba(245,158,11,0.1)', color: '#d97706' },
+          { label: 'Approved', count: counts.Approved, icon: CheckCircle, bg: 'var(--success-light)', color: 'var(--success)' },
+          { label: 'Rejected', count: counts.Rejected, icon: XCircle, bg: 'var(--danger-light)', color: 'var(--danger)' },
         ].map((s, i) => {
           const Icon = s.icon;
           return (

@@ -4,60 +4,94 @@ import { Search, Filter, BookOpen, MapPin, Hash, CheckCircle, XCircle, SlidersHo
 const categories = ['All', 'Computer Science', 'Software Eng.', 'Mathematics', 'Physics', 'AI / ML', 'Literature'];
 
 const BookSearch = ({ user }) => {
-  const [searchTerm, setSearchTerm]           = useState('');
-  const [searchBy, setSearchBy]               = useState('title');
-  const [filterCategory, setFilterCategory]   = useState('All');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchBy, setSearchBy] = useState('title');
+  const [filterCategory, setFilterCategory] = useState('All');
   const [filterAvailability, setFilterAvailability] = useState('All');
-  const [books, setBooks]                     = useState([]);
-  const [loading, setLoading]                 = useState(false);
-  const [showFilters, setShowFilters]         = useState(false);
-  const [requestedIds, setRequestedIds]       = useState([]);
-  const [selectedBook, setSelectedBook]       = useState(null);
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [requestedIds, setRequestedIds] = useState([]);
+  const [selectedBook, setSelectedBook] = useState(null);
 
   const fetchBooks = () => {
     setLoading(true);
-    const params = new URLSearchParams({ term: searchTerm, by: searchBy, category: filterCategory, availability: filterAvailability });
-    fetch(`http://localhost:5000/api/books/search?${params}`)
-      .then(r => r.json())
-      .then(data => { setBooks(data); setLoading(false); })
-      .catch((err) => {
-        console.error('Search error:', err);
-        setBooks([]);
-        setLoading(false);
-      });
+    // const params = new URLSearchParams({ term: searchTerm, by: searchBy, category: filterCategory, availability: filterAvailability });
+    // fetch(`http://localhost:5000/api/books/search?${params}`)
+    //   .then(r => r.json())
+    //   .then(data => { setBooks(data); setLoading(false); })
+    //   .catch((err) => {
+    //     console.error('Search error:', err);
+    //     setBooks([]);
+    //     setLoading(false);
+    //   });
+
+    setTimeout(() => {
+      let mockBooks = [
+        { id: 1, title: 'Introduction to Algorithms', author: 'Thomas H. Cormen', isbn: '978-0262033848', category: 'Computer Science', available: true, library: 'Main', location: 'Section A, Shelf 2', callNumber: 'QA76.6' },
+        { id: 2, title: 'Clean Code', author: 'Robert C. Martin', isbn: '978-0132350884', category: 'Software Eng.', available: false, library: 'Main', location: 'Section B, Shelf 1', callNumber: 'QA76.76' },
+        { id: 3, title: 'Artificial Intelligence: A Modern Approach', author: 'Stuart Russell', isbn: '978-0134610993', category: 'AI / ML', available: true, library: 'Department', location: 'AI Lab Reference', callNumber: 'Q335.R86' },
+        { id: 4, title: 'Calculus', author: 'James Stewart', isbn: '978-1285740621', category: 'Mathematics', available: true, library: 'Main', location: 'Section M, Shelf 4', callNumber: 'QA303.2' },
+      ];
+
+      if (searchTerm) {
+        const lowerTerm = searchTerm.toLowerCase();
+        mockBooks = mockBooks.filter(b =>
+          searchBy === 'title' ? b.title.toLowerCase().includes(lowerTerm) :
+            searchBy === 'author' ? b.author.toLowerCase().includes(lowerTerm) :
+              searchBy === 'isbn' ? b.isbn.includes(lowerTerm) :
+                b.title.toLowerCase().includes(lowerTerm) || b.author.toLowerCase().includes(lowerTerm)
+        );
+      }
+      if (filterCategory !== 'All') {
+        mockBooks = mockBooks.filter(b => b.category === filterCategory);
+      }
+      if (filterAvailability !== 'All') {
+        const isAvail = filterAvailability === 'Available';
+        mockBooks = mockBooks.filter(b => b.available === isAvail);
+      }
+      setBooks(mockBooks);
+      setLoading(false);
+    }, 400);
   };
 
   useEffect(() => { fetchBooks(); }, [filterCategory, filterAvailability]);
 
   const handleRequest = async (book) => {
     if (!user?.studentId) return alert('Please login again');
-    
-    try {
-      const response = await fetch('http://localhost:5000/api/books/request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          studentId: user.studentId,
-          bookId: book.id,
-          bookName: book.title,
-          library: book.library || 'Main'
-        }),
-      });
-      
-      const data = await response.json();
-      if (response.ok) {
-        setRequestedIds(prev => [...prev, book.id]);
-        alert(data.message);
-        if (selectedBook?.id === book.id) {
-          setSelectedBook(null);
-        }
-      } else {
-        alert(data.message || 'Request failed');
-      }
-    } catch (err) {
-      console.error('Request error:', err);
-      alert('Could not submit request. Check your connection.');
-    }
+
+    // try {
+    //   const response = await fetch('http://localhost:5000/api/books/request', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ 
+    //       studentId: user.studentId,
+    //       bookId: book.id,
+    //       bookName: book.title,
+    //       library: book.library || 'Main'
+    //     }),
+    //   });
+    //   
+    //   const data = await response.json();
+    //   if (response.ok) {
+    //     setRequestedIds(prev => [...prev, book.id]);
+    //     alert(data.message);
+    //     if (selectedBook?.id === book.id) {
+    //       setSelectedBook(null);
+    //     }
+    //   } else {
+    //     alert(data.message || 'Request failed');
+    //   }
+    // } catch (err) {
+    //   console.error('Request error:', err);
+    //   alert('Could not submit request. Check your connection.');
+    // }
+
+    setTimeout(() => {
+      setRequestedIds(prev => [...prev, book.id]);
+      alert('Book reserved successfully (Dummy)!');
+      if (selectedBook?.id === book.id) setSelectedBook(null);
+    }, 300);
   };
 
   return (
@@ -184,14 +218,24 @@ const BookSearch = ({ user }) => {
                             <BookOpen size={16} color={book.available ? 'var(--secondary-color)' : 'var(--danger)'} />
                           </div>
                           <div>
-                            <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.88rem' }}>{book.title}</div>
+                            <div title={book.title} style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.88rem' }}>
+                              {book.title.length > 10 ? book.title.substring(0, 10) + '...' : book.title}
+                            </div>
                             <div style={{ fontSize: '0.72rem', color: 'var(--primary-color)', fontWeight: 500 }}>View Details</div>
                           </div>
                         </div>
                       </td>
-                      <td style={{ color: 'var(--text-secondary)', fontSize: '0.87rem' }}>{book.author}</td>
-                      <td style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>{book.isbn}</td>
-                      <td><span className="badge badge-neutral">{book.category}</span></td>
+                      <td title={book.author} style={{ color: 'var(--text-secondary)', fontSize: '0.87rem' }}>
+                        {book.author.length > 10 ? book.author.substring(0, 10) + '...' : book.author}
+                      </td>
+                      <td title={book.isbn} style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                        {book.isbn.length > 10 ? book.isbn.substring(0, 10) + '...' : book.isbn}
+                      </td>
+                      <td title={book.category}>
+                        <span className="badge badge-neutral">
+                          {book.category.length > 10 ? book.category.substring(0, 10) + '...' : book.category}
+                        </span>
+                      </td>
                       <td>
                         {book.available ? (
                           <span className="badge badge-success"><CheckCircle size={12} /> Available</span>
@@ -231,11 +275,11 @@ const BookSearch = ({ user }) => {
                 <BookOpen size={40} color="var(--secondary-color)" />
               </div>
             </div>
-            
+
             <div style={{ padding: '50px 30px 30px' }}>
               <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>{selectedBook.title}</h2>
               <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>by {selectedBook.author}</p>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
                 <div>
                   <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>ISBN Number</label>
