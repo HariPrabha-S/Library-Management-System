@@ -44,7 +44,7 @@ export default function AdminSidebar({ active, setActive, collapsed, setCollapse
 
     return (
         <div
-            className="no-scrollbar"
+            className={`no-scrollbar sidebar ${!collapsed ? 'active' : ''}`}
             style={{
                 width: sidebarWidth,
                 minWidth: sidebarWidth,
@@ -185,27 +185,25 @@ export default function AdminSidebar({ active, setActive, collapsed, setCollapse
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 12,
-                        padding: '12px 14px',
-                        background: 'rgba(239,68,68,0.12)',
-                        color: '#fca5a5',
-                        border: '1px solid rgba(239,68,68,0.2)',
-                        borderRadius: 10,
+                        padding: '13px 14px',
+                        background: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: 12,
                         fontFamily: "'Inter', sans-serif",
-                        fontSize: '0.88rem',
-                        fontWeight: 500,
+                        fontSize: '0.9rem',
+                        fontWeight: 700,
                         cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        textAlign: 'left',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 4px 12px rgba(239, 68, 68, 0.25)',
                     }}
                     onMouseEnter={e => {
-                        e.currentTarget.style.background = 'rgba(239,68,68,0.25)';
-                        e.currentTarget.style.color = 'white';
-                        e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)';
+                        e.currentTarget.style.opacity = '0.65';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
                     }}
                     onMouseLeave={e => {
-                        e.currentTarget.style.background = 'rgba(239,68,68,0.12)';
-                        e.currentTarget.style.color = '#fca5a5';
-                        e.currentTarget.style.borderColor = 'rgba(239,68,68,0.2)';
+                        e.currentTarget.style.opacity = '1';
+                        e.currentTarget.style.transform = 'translateY(0)';
                     }}
                 >
                     <LogOut size={18} />

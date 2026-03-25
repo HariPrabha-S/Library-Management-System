@@ -90,8 +90,8 @@ export default function AdminDashboard() {
                             <div className="absolute top-4 right-4 z-10 w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-[var(--color-primary)] border border-red-100 group-hover:scale-110 transition-transform">
                                 <FiBook size={24} />
                             </div>
-                            {/* Decorative semi-circle */}
-                            <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-red-500/5 rounded-full z-0"></div>
+                            {/* Decorative background circle */}
+                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-(--color-primary) opacity-[0.05] rounded-full z-0"></div>
                         </div>
 
                         {/* Currently Issued */}
@@ -106,8 +106,8 @@ export default function AdminDashboard() {
                             <div className="absolute top-4 right-4 z-10 w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center text-[var(--color-secondary)] border border-teal-100 group-hover:scale-110 transition-transform">
                                 <FiBookOpen size={24} />
                             </div>
-                            {/* Decorative semi-circle */}
-                            <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-teal-500/5 rounded-full z-0"></div>
+                            {/* Decorative background circle */}
+                            <div className="absolute -bottom-12 right-12 w-32 h-32 bg-(--color-secondary) opacity-[0.05] rounded-full z-0"></div>
                         </div>
 
                         {/* Available Books */}
@@ -122,8 +122,8 @@ export default function AdminDashboard() {
                             <div className="absolute top-4 right-4 z-10 w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center text-[var(--color-secondary)] border border-teal-100 group-hover:scale-110 transition-transform">
                                 <FiCheckCircle size={24} />
                             </div>
-                            {/* Decorative semi-circle */}
-                            <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-teal-500/5 rounded-full z-0"></div>
+                            {/* Decorative background circle */}
+                            <div className="absolute top-4 -left-12 w-32 h-32 bg-(--color-secondary) opacity-[0.05] rounded-full z-0"></div>
                         </div>
 
                         {/* Overdue Books */}
@@ -138,8 +138,8 @@ export default function AdminDashboard() {
                             <div className="absolute top-4 right-4 z-10 w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-[var(--color-primary)] border border-red-100 group-hover:scale-110 transition-transform">
                                 <FiAlertCircle size={24} />
                             </div>
-                            {/* Decorative semi-circle */}
-                            <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-red-500/5 rounded-full z-0"></div>
+                            {/* Decorative background circle */}
+                            <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-(--color-primary) opacity-[0.05] rounded-full z-0"></div>
                         </div>
                     </div>
 

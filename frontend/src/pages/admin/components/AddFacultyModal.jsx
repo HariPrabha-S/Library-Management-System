@@ -31,7 +31,7 @@ export default function AddFacultyModal({ setShowModal, setFaculties }) {
     }, [setShowModal]);
 
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[300] backdrop-blur-md animate-in fade-in duration-300 p-4">
 
             <div className="bg-white p-8 rounded-2xl w-full max-w-md shadow-xl">
 

@@ -43,13 +43,10 @@ export default function StudentAttendance() {
     return (
         <div className="animate-fade-in max-w-5xl mx-auto">
             {/* HEADER */}
-            <div className="flex justify-between items-center mb-10">
-                <div>
-                    <h1 className="font-heading text-3xl font-bold text-[var(--color-primary)]">
-                        Attendance Scanner
-                    </h1>
-                    <p className="text-gray-500 text-sm mt-1">Connect your barcode scanner to track student entry/exit</p>
-                </div>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="font-heading text-3xl font-bold text-[var(--color-primary)]">
+                    Attendance Scanner
+                </h1>
 
                 {/* MODE TOGGLE */}
                 <div className="flex bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100">

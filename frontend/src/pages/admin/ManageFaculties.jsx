@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
 import FacultyTable from "./components/FacultyTable";
 import FacultyFilters from "./components/FacultyFilters";
 import AddFacultyModal from "./components/AddFacultyModal";

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, Search } from 'lucide-react';
+import { Bell, Search, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const mockNotifications = [
@@ -8,7 +8,7 @@ const mockNotifications = [
     { id: 3, text: 'Library will be closed for maintenance tomorrow.', time: '2 days ago', unread: false }
 ];
 
-const Header = ({ title, subtitle, user }) => {
+const Header = ({ title, subtitle, user, onToggleSidebar }) => {
     const [searchVal, setSearchVal] = useState('');
     const [showNotif, setShowNotif] = useState(false);
     const navigate = useNavigate();
@@ -19,6 +19,15 @@ const Header = ({ title, subtitle, user }) => {
 
     return (
         <header className="app-header">
+            {/* Mobile Toggle */}
+            <button
+                className="header-icon-btn md:hidden"
+                style={{ marginLeft: -8, marginRight: 8 }}
+                onClick={onToggleSidebar}
+            >
+                <Menu size={20} />
+            </button>
+
             {/* Page Title */}
             <div className="header-page-info">
                 <h1 className="header-title">{title}</h1>

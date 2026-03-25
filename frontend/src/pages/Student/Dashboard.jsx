@@ -54,9 +54,9 @@ const Dashboard = ({ user }) => {
 
   const activityIconMap = {
     issue: { icon: BookOpen, color: 'var(--secondary-color)', bg: 'rgba(1,137,141,0.08)' },
-    request: { icon: Bookmark, color: 'var(--success)', bg: 'var(--success-light)' },
-    overdue: { icon: AlertCircle, color: 'var(--danger)', bg: 'var(--danger-light)' },
-    return: { icon: CheckCircle, color: '#8b5cf6', bg: 'rgba(139,92,246,0.08)' }
+    request: { icon: Bookmark, color: 'var(--primary-color)', bg: 'rgba(121,12,12,0.06)' },
+    overdue: { icon: AlertCircle, color: 'var(--primary-color)', bg: 'rgba(121,12,12,0.06)' },
+    return: { icon: CheckCircle, color: 'var(--secondary-color)', bg: 'rgba(1,137,141,0.08)' }
   };
 
   if (loading) {
@@ -89,39 +89,34 @@ const Dashboard = ({ user }) => {
       iconColor: 'white',
       iconBg: 'var(--secondary-color)',
       accent: 'var(--secondary-color)',
+      circlePos: { top: -20, right: -20 }
     },
     {
       label: 'Books Due Soon',
       value: d.dueSoon,
       icon: Clock,
       iconColor: 'white',
-      iconBg: '#f59e0b',
-      accent: '#f59e0b',
+      iconBg: 'var(--primary-color)',
+      accent: 'var(--primary-color)',
+      circlePos: { bottom: -40, right: 30 }
     },
     {
       label: 'Total Fine (₹)',
       value: `₹${d.totalFine}`,
       icon: DollarSign,
       iconColor: 'white',
-      iconBg: 'var(--danger)',
-      accent: 'var(--danger)',
+      iconBg: 'var(--primary-color)',
+      accent: 'var(--primary-color)',
+      circlePos: { top: 10, left: -30 }
     },
     {
       label: 'Pending Requests',
       value: d.pendingReqs,
       icon: Bookmark,
       iconColor: 'white',
-      iconBg: '#8b5cf6',
-      accent: '#8b5cf6',
-    },
-    {
-      label: 'Selected Library',
-      value: d.selectedLibrary || 'Main Library',
-      valueSmall: true,
-      icon: MapPin,
-      iconColor: 'white',
-      iconBg: 'var(--primary-color)',
-      accent: 'var(--primary-color)',
+      iconBg: 'var(--secondary-color)',
+      accent: 'var(--secondary-color)',
+      circlePos: { bottom: -30, left: -20 }
     },
   ];
 
@@ -176,14 +171,24 @@ const Dashboard = ({ user }) => {
         {statsCards.map((card, i) => {
           const Icon = card.icon;
           return (
-            <div key={i} className="stat-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div key={i} className="stat-card" style={{ position: 'relative', overflow: 'hidden', marginBottom: 28 }}>
+              <div style={{
+                position: 'absolute',
+                ...card.circlePos,
+                width: 120,
+                height: 120,
+                borderRadius: '50%',
+                background: card.accent,
+                opacity: 0.07,
+                zIndex: 0
+              }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
                 <div className="stat-icon" style={{ background: card.iconBg }}>
                   <Icon size={20} color={card.iconColor} />
                 </div>
                 <TrendingUp size={16} color="var(--text-muted)" />
               </div>
-              <div>
+              <div style={{ position: 'relative', zIndex: 1 }}>
                 <div className="stat-label">{card.label}</div>
                 <div className={`stat-value`} style={{ fontSize: card.valueSmall ? '1.3rem' : '2rem', marginTop: 6 }}>
                   {card.value}
@@ -254,9 +259,9 @@ const Dashboard = ({ user }) => {
           <div style={{ padding: '8px 24px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
               { label: 'Search for a Book', icon: BookOpen, path: '/student/search', color: 'var(--secondary-color)', bg: 'rgba(1,137,141,0.08)' },
-              { label: 'View Issued Books', icon: Clock, path: '/student/issued', color: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
-              { label: 'Pay Outstanding Fine', icon: DollarSign, path: '/student/fines', color: 'var(--danger)', bg: 'rgba(239,68,68,0.08)' },
-              { label: 'Track Requests', icon: Bookmark, path: '/student/requests', color: '#8b5cf6', bg: 'rgba(139,92,246,0.08)' },
+              { label: 'View Issued Books', icon: Clock, path: '/student/issued', color: 'var(--primary-color)', bg: 'rgba(121,12,12,0.08)' },
+              { label: 'Pay Outstanding Fine', icon: DollarSign, path: '/student/fines', color: 'var(--primary-color)', bg: 'rgba(121,12,12,0.08)' },
+              { label: 'Track Requests', icon: Bookmark, path: '/student/requests', color: 'var(--secondary-color)', bg: 'rgba(1,137,141,0.08)' },
               { label: 'Renew Books', icon: RefreshCw, path: '/student/issued', color: 'var(--primary-color)', bg: 'rgba(121,12,12,0.08)' },
             ].map((action, i) => {
               const Icon = action.icon;

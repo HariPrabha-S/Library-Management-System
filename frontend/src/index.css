@@ -22,7 +22,7 @@
     --bg-secondary: #f8f9fb;
     --radius-lg: 16px;
     --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
     --success: #10b981;
     --success-light: rgba(16, 185, 129, 0.08);
     --danger: #ef4444;
@@ -102,6 +102,20 @@ body {
         @apply flex-1 p-8 overflow-y-auto;
     }
 
+    @media (max-width: 768px) {
+        .main-content {
+            margin-left: 0 !important;
+        }
+
+        .page-body {
+            padding: 20px 16px;
+        }
+
+        .app-header {
+            padding: 14px 16px;
+        }
+    }
+
     /* ========== SIDEBAR ========== */
     .sidebar {
         width: var(--sidebar-width);
@@ -109,6 +123,17 @@ body {
         background: var(--bg-sidebar);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 4px 0 24px rgba(121, 12, 12, 0.15);
+    }
+
+    @media (max-width: 768px) {
+        .sidebar {
+            transform: translateX(-100%);
+        }
+
+        .sidebar.active {
+            transform: translateX(0);
+            width: 248px !important;
+        }
     }
 
     .sidebar-brand {
@@ -193,19 +218,17 @@ body {
     }
 
     .logout-btn {
-        @apply w-full flex items-center gap-3 rounded-[10px] text-[0.88rem] font-medium cursor-pointer text-left;
-        padding: 12px 14px;
-        background: rgba(239, 68, 68, 0.12);
-        color: #fca5a5;
-        border: 1px solid rgba(239, 68, 68, 0.2);
-        font-family: 'Inter', sans-serif;
-        transition: all 0.2s ease;
+        @apply w-full flex items-center justify-center gap-3 rounded-[12px] text-[0.9rem] font-bold cursor-pointer transition-all duration-300;
+        padding: 14px;
+        background: #ef4444;
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
     }
 
     .logout-btn:hover {
-        @apply text-white;
-        background: rgba(239, 68, 68, 0.25);
-        border-color: rgba(239, 68, 68, 0.4);
+        opacity: 0.65;
+        transform: translateY(-2px);
     }
 
     /* ========== APP HEADER ========== */
@@ -213,6 +236,20 @@ body {
         @apply flex items-center justify-between sticky top-0 z-[100] gap-5 bg-white border-b border-[#eef0f4];
         padding: 18px 36px;
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .responsive-flex {
+        @apply flex gap-3;
+    }
+
+    @media (max-width: 768px) {
+        .responsive-flex {
+            @apply flex-col;
+        }
+
+        .header-page-info {
+            @apply hidden md:block;
+        }
     }
 
     .header-page-info {
@@ -544,11 +581,22 @@ body {
         @apply grid grid-cols-2 gap-7;
     }
 
+    @media (max-width: 768px) {
+        .library-cards-grid {
+            @apply grid-cols-1;
+        }
+
+        .lib-sel-heading {
+            @apply text-[1.8rem];
+        }
+    }
+
     .library-card {
         @apply bg-white rounded-[20px] cursor-pointer relative overflow-hidden flex flex-col;
         padding: 32px;
         gap: 20px;
         border: 2px solid var(--border-light);
+        box-shadow: var(--shadow-md);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
     }
 
@@ -697,7 +745,7 @@ body {
     .resource-card {
         @apply bg-white rounded-2xl overflow-hidden;
         border: 1px solid #f0f0f0;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        box-shadow: var(--shadow-md);
         transition: all 0.3s ease;
     }
 
@@ -796,6 +844,37 @@ body {
     .error-state {
         color: #ff5252;
     }
+}
+
+/* Custom Scrollbar Utility */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e5e7eb;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    opacity: 0.5;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary);
+}
+
+/* Firefox */
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #e5e7eb transparent;
 }
 
 /* ==========================================

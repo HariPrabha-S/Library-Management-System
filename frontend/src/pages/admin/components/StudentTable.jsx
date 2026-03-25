@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { FiTrash } from "react-icons/fi";
+import { User, Mail, GraduationCap, XCircle, BadgeCheck, Phone, Calendar, BookOpen } from "lucide-react";
 
 export default function StudentTable({ students, selectedStudents, onSelect, onDelete, selectedColumns, isPrintable }) {
+  const [viewedStudent, setViewedStudent] = useState(null);
 
   const isColVisible = (colName) => {
     if (!selectedColumns) return true;
@@ -37,7 +40,12 @@ export default function StudentTable({ students, selectedStudents, onSelect, onD
                 <tr key={student._id} className={`${isPrintable ? "border-b border-gray-300" : "border-b last:border-none hover:bg-gray-50 transition"} text-sm cursor-pointer leading-tight group`}>
                   {isColVisible('name') && (
                     <td className={`py-4 px-3 ${isPrintable ? "border border-gray-300" : ""}`}>
-                      <span className={`font-semibold ${isPrintable ? "text-black" : "text-gray-900 group-hover:text-[var(--color-primary)] transition-colors"}`}>{student.name}</span>
+                      <span
+                        className={`font-semibold cursor-pointer ${isPrintable ? "text-black" : "text-gray-900 hover:text-[var(--color-primary)] transition-colors"}`}
+                        onClick={() => !isPrintable && setViewedStudent(student)}
+                      >
+                        {student.name}
+                      </span>
                     </td>
                   )}
                   {isColVisible('rollNo') && <td className={`py-4 px-3 text-gray-600 ${isPrintable ? "border border-gray-300 text-black" : ""}`}>{student.rollNo}</td>}
@@ -73,6 +81,59 @@ export default function StudentTable({ students, selectedStudents, onSelect, onD
           </tbody>
         </table>
       </div>
+
+      {/* Student Details Modal */}
+      {viewedStudent && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }} onClick={() => setViewedStudent(null)}>
+          <div className="bg-white rounded-2xl animate-fade-in shadow-2xl relative" style={{ maxWidth: 500, width: '90%', padding: 0, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+            <div style={{ height: 120, background: 'linear-gradient(135deg, var(--color-primary), #5a0808)', position: 'relative' }}>
+              <button style={{ position: 'absolute', top: 16, right: 16, background: 'white', border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} onClick={() => setViewedStudent(null)}>
+                <XCircle size={20} color="var(--text-secondary)" />
+              </button>
+              <div style={{ position: 'absolute', bottom: -30, left: 30, width: 80, height: 80, background: 'white', border: '1px solid #e5e7eb', borderRadius: 20, boxShadow: '0 8px 24px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <User size={40} color="var(--color-primary)" />
+              </div>
+            </div>
+
+            <div style={{ padding: '50px 30px 30px' }}>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>{viewedStudent.name}</h2>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>{viewedStudent.rollNo} • {viewedStudent.department}</p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
+                <div>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Academic Year</label>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>Year {viewedStudent.year}</p>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Email Address</label>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{viewedStudent.email}</p>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Total Books Issued</label>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{viewedStudent.totalBooks} Lifetime</p>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Current Fine</label>
+                  <p style={{ fontSize: '0.9rem', color: viewedStudent.fine > 0 ? 'var(--color-primary)' : 'var(--success)', fontWeight: 700 }}>₹{viewedStudent.fine}</p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 20, borderTop: '1px solid var(--border-light)' }}>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <span className="badge badge-primary"><BookOpen size={11} /> {viewedStudent.issuedBooks} Active</span>
+                  <span className="badge badge-neutral"><BadgeCheck size={11} /> {viewedStudent.returnedBooks} Ret.</span>
+                </div>
+                <button
+                  className="px-6 py-2 bg-[var(--color-primary)] hover:bg-[#610a0a] text-white rounded-lg transition-colors font-medium text-sm shadow-md"
+                  onClick={() => setViewedStudent(null)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

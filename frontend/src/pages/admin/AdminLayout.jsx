@@ -4,7 +4,7 @@ import { Outlet, useLocation } from "react-router-dom";
 
 export default function AdminLayout() {
   const [active, setActive] = useState('dashboard');
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(window.innerWidth < 1024);
 
   const location = useLocation();
 
@@ -18,6 +18,16 @@ export default function AdminLayout() {
     else if (path.includes("/admin/fines")) setActive("fines");
     else setActive("dashboard");
   }, [location]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setCollapsed(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-secondary)' }}>
@@ -38,7 +48,7 @@ export default function AdminLayout() {
           transition: 'margin-left 0.3s cubic-bezier(0.4,0,0.2,1)',
         }}
       >
-        <Outlet />
+        <Outlet context={{ setCollapsed }} />
       </div>
     </div>
   );

@@ -42,7 +42,7 @@ const Sidebar = ({ onLogout, collapsed, setCollapsed }) => {
 
   return (
     <div
-      className="no-scrollbar"
+      className={`no-scrollbar sidebar ${!collapsed ? 'active' : ''}`}
       style={{
         width: collapsed ? 72 : 248,
         minWidth: collapsed ? 72 : 248,

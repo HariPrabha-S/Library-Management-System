@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
 import { FiDollarSign, FiSearch, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
+import { User, Mail, GraduationCap, XCircle, BadgeCheck, Phone, Briefcase, BookOpen, AlertOctagon } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function ManageFines() {
     const [fines, setFines] = useState([]);
     const [search, setSearch] = useState("");
+    const [viewedFine, setViewedFine] = useState(null);
 
     useEffect(() => {
         const dummyFines = [
@@ -67,7 +69,12 @@ export default function ManageFines() {
                                 filteredFines.map(fine => (
                                     <tr key={fine.id} className="border-b border-gray-200 last:border-none hover:bg-gray-50 transition cursor-pointer text-sm leading-tight text-gray-600 group">
                                         <td className="py-4 px-3 whitespace-nowrap align-middle">
-                                            <span className="font-semibold text-gray-900 group-hover:text-[var(--color-primary)] transition-colors">{fine.name}</span>
+                                            <span
+                                                className="font-semibold text-gray-900 hover:text-(--color-primary) transition-colors cursor-pointer"
+                                                onClick={() => setViewedFine(fine)}
+                                            >
+                                                {fine.name}
+                                            </span>
                                         </td>
                                         <td className="py-4 px-3 whitespace-nowrap align-middle">
                                             <span className={`px-2 py-1 rounded-md text-xs font-bold ${fine.type === 'Student' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
@@ -100,6 +107,55 @@ export default function ManageFines() {
                     </table>
                 </div>
             </div>
+
+            {/* Fine Details Modal */}
+            {viewedFine && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }} onClick={() => setViewedFine(null)}>
+                    <div className="bg-white rounded-2xl animate-fade-in shadow-2xl relative" style={{ maxWidth: 500, width: '90%', padding: 0, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ height: 120, background: 'linear-gradient(135deg, var(--color-primary), #5a0808)', position: 'relative' }}>
+                            <button style={{ position: 'absolute', top: 16, right: 16, background: 'white', border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} onClick={() => setViewedFine(null)}>
+                                <XCircle size={20} color="var(--text-secondary)" />
+                            </button>
+                            <div style={{ position: 'absolute', bottom: -30, left: 30, width: 80, height: 80, background: 'white', border: '1px solid #e5e7eb', borderRadius: 20, boxShadow: '0 8px 24px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <AlertOctagon size={40} color="var(--color-primary)" />
+                            </div>
+                        </div>
+
+                        <div style={{ padding: '50px 30px 30px' }}>
+                            <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Fine Details</h2>
+                            <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>Ref: #FN-{viewedFine.id}</p>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
+                                <div className="col-span-2">
+                                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Imposed On</label>
+                                    <p style={{ fontSize: '1rem', color: 'var(--text-primary)', fontWeight: 600 }}>{viewedFine.name} ({viewedFine.type})</p>
+                                </div>
+                                <div className="col-span-2">
+                                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Reason for Fine</label>
+                                    <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{viewedFine.reason}</p>
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Outstanding Amount</label>
+                                    <p style={{ fontSize: '1.2rem', color: 'var(--color-primary)', fontWeight: 800 }}>₹{viewedFine.amount}</p>
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Payment Status</label>
+                                    <p style={{ fontSize: '0.9rem', color: viewedFine.status === 'Paid' ? 'var(--success)' : 'var(--color-primary)', fontWeight: 700 }}>{viewedFine.status}</p>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingTop: 20, borderTop: '1px solid var(--border-light)' }}>
+                                <button
+                                    className="px-6 py-2 bg-(--color-primary) hover:bg-[#610a0a] text-white rounded-lg transition-colors font-medium text-sm shadow-md"
+                                    onClick={() => setViewedFine(null)}
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

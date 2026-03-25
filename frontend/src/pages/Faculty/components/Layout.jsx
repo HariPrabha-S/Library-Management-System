@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
@@ -19,8 +19,18 @@ const routeTitles = {
 
 const Layout = ({ user, onLogout }) => {
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(window.innerWidth < 1024);
   const currentRoute = routeTitles[location.pathname] || { title: 'Library Portal', subtitle: '' };
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setCollapsed(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <div className="app-container">
@@ -37,7 +47,12 @@ const Layout = ({ user, onLogout }) => {
           transition: 'margin-left 0.3s cubic-bezier(0.4,0,0.2,1)',
         }}
       >
-        <Header title={currentRoute.title} subtitle={currentRoute.subtitle} user={user} />
+        <Header
+          title={currentRoute.title}
+          subtitle={currentRoute.subtitle}
+          user={user}
+          onToggleSidebar={() => setCollapsed(!collapsed)}
+        />
         <main className="page-body">
           <Outlet />
         </main>
