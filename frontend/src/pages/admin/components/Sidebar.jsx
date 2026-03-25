@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { FiLogOut, FiHome, FiUsers, FiBook, FiBookOpen, FiChevronLeft, FiChevronRight, FiUserCheck, FiDollarSign } from "react-icons/fi";
+import { FiLogOut, FiHome, FiUsers, FiBook, FiBookOpen, FiChevronLeft, FiChevronRight, FiUserCheck, FiAlertCircle } from "react-icons/fi";
 import { useEffect } from "react";
 
 export default function AdminSidebar({ active, setActive, collapsed, setCollapsed }) {
@@ -275,7 +275,7 @@ export default function AdminSidebar({ active, setActive, collapsed, setCollapse
                                         : "text-white/70 group-hover:text-white"
                                         }`}
                                 >
-                                    <FiDollarSign />
+                                    <FiAlertCircle />
                                 </span>
 
                                 {!collapsed && (

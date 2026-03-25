@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FiDollarSign, FiSearch, FiCheckCircle } from "react-icons/fi";
+import { FiDollarSign, FiSearch, FiCheckCircle,FiAlertCircle } from "react-icons/fi";
 
 export default function ManageFines() {
     const [fines, setFines] = useState([]);
@@ -24,7 +24,7 @@ export default function ManageFines() {
         <>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="font-heading text-3xl font-bold text-[var(--color-primary)] flex items-center gap-3">
-                    <FiDollarSign /> Manage Fines
+                    <FiAlertCircle /> Manage Fines
                 </h1>
             </div>
 
