@@ -4,7 +4,8 @@ import StudentTable from "./components/StudentTable";
 import StudentFilters from "./components/StudentFilters";
 import AddStudentModal from "./components/AddStudentModal";
 import StudentReports from "./components/StudentReports";
-import { FiFileText, FiArrowLeft } from "react-icons/fi";
+import BulkUploadModal from "./components/BulkUploadModal";
+import { FiFileText, FiArrowLeft, FiUploadCloud } from "react-icons/fi";
 
 export default function ManageStudents() {
 
@@ -14,6 +15,7 @@ export default function ManageStudents() {
     const [departmentFilter, setDepartmentFilter] = useState("");
     const [selectedStudents, setSelectedStudents] = useState([]);
     const [showModal, setShowModal] = useState(false);
+    const [showBulkModal, setShowBulkModal] = useState(false);
 
     // Report states
     const [showReportModal, setShowReportModal] = useState(false);
@@ -153,8 +155,15 @@ export default function ManageStudents() {
                         Generate Report
                     </button>
                     <button
+                        onClick={() => setShowBulkModal(true)}
+                        className="bg-white text-emerald-700 border border-emerald-400 px-5 py-2 rounded-xl hover:bg-emerald-50 transition flex items-center gap-2 font-semibold"
+                    >
+                        <FiUploadCloud />
+                        Upload Excel
+                    </button>
+                    <button
                         onClick={() => setShowModal(true)}
-                        className="bg-[var(--color-primary)] text-white px-5 py-2 rounded-xl hover:opacity-90 transition"
+                        className="bg-[var(--color-primary)] text-white px-5 py-2 rounded-xl hover:opacity-90 transition flex items-center gap-2 font-semibold"
                     >
                         + Add Student
                     </button>
@@ -214,6 +223,14 @@ export default function ManageStudents() {
                 <AddStudentModal
                     setShowModal={setShowModal}
                     setStudents={setStudents}
+                />
+            )}
+
+            {showBulkModal && (
+                <BulkUploadModal
+                    type="student"
+                    onUpload={(rows) => setStudents(prev => [...prev, ...rows])}
+                    onClose={() => setShowBulkModal(false)}
                 />
             )}
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
@@ -18,31 +18,33 @@ const routeTitles = {
 
 const Layout = ({ user, onLogout }) => {
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(window.innerWidth < 1024);
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const currentRoute = routeTitles[location.pathname] || { title: 'Library Portal', subtitle: '' };
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 1024) {
-        setCollapsed(true);
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   return (
     <div className="app-container">
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
       <Sidebar
         user={user}
         onLogout={onLogout}
         collapsed={collapsed}
         setCollapsed={setCollapsed}
+        mobileOpen={mobileOpen}
+        setMobileOpen={setMobileOpen}
       />
+
       <div
         className="main-content"
         style={{
-          marginLeft: collapsed ? 72 : 'var(--sidebar-width)',
+          marginLeft: collapsed ? 0 : '',
           transition: 'margin-left 0.3s cubic-bezier(0.4,0,0.2,1)',
         }}
       >
@@ -50,7 +52,7 @@ const Layout = ({ user, onLogout }) => {
           title={currentRoute.title}
           subtitle={currentRoute.subtitle}
           user={user}
-          onToggleSidebar={() => setCollapsed(!collapsed)}
+          onMenuClick={() => setMobileOpen(true)}
         />
         <main className="page-body">
           <Outlet />

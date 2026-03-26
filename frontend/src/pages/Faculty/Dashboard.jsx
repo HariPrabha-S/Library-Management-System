@@ -19,7 +19,7 @@ const Dashboard = ({ user }) => {
     //
     // setLoading(true);
     // Promise.all([
-    //   fetch(`http://localhost:5001/api/dashboard/${user.facultyId}`).then(r => r.json()),
+    //   fetch(`http://localhost:5001/api/dashboard/${` u ser.facultyId}`).then(r => r.json()),
     //   fetch(`http://localhost:5001/api/activity/${user.facultyId}`).then(r => r.json())
     // ])
     //   .then(([stats, act]) => {

@@ -1,54 +1,59 @@
 import { useState, useEffect } from "react";
 import AdminSidebar from "./components/Sidebar";
+import AdminHeader from "./components/Header";
 import { Outlet, useLocation } from "react-router-dom";
 
-export default function AdminLayout() {
-  const [active, setActive] = useState('dashboard');
-  const [collapsed, setCollapsed] = useState(window.innerWidth < 1024);
+const routeTitles = {
+  '/admin/dashboard': { title: 'Admin Dashboard', subtitle: 'Overview of system status' },
+  '/admin/books': { title: 'Manage Books', subtitle: 'Global book catalog management' },
+  '/admin/students': { title: 'Manage Students', subtitle: 'Student directory and activities' },
+  '/admin/faculties': { title: 'Manage Faculties', subtitle: 'Faculty directory and permissions' },
+  '/admin/issues': { title: 'Issues & Returns', subtitle: 'Monitor borrow/return transactions' },
+  '/admin/attendance': { title: 'User Attendance', subtitle: 'Daily library visit logs' },
+  '/admin/fines': { title: 'Fine Management', subtitle: 'Track and collect overdue fines' },
+};
 
+export default function AdminLayout({ user, onLogout }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
+  // Close mobile sidebar when navigating
   useEffect(() => {
-    const path = location.pathname;
-    if (path.includes("/admin/books")) setActive("books");
-    else if (path.includes("/admin/students")) setActive("students");
-    else if (path.includes("/admin/faculties")) setActive("faculties");
-    else if (path.includes("/admin/issues")) setActive("issues");
-    else if (path.includes("/admin/attendance")) setActive("attendance");
-    else if (path.includes("/admin/fines")) setActive("fines");
-    else setActive("dashboard");
-  }, [location]);
+    setMobileOpen(false);
+  }, [location.pathname]);
 
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 1024) {
-        setCollapsed(true);
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const currentRoute = routeTitles[location.pathname] || { title: 'Admin Portal', subtitle: '' };
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-secondary)' }}>
-      <div className="no-print">
-        <AdminSidebar
-          active={active}
-          setActive={setActive}
-          collapsed={collapsed}
-          setCollapsed={setCollapsed}
+    <div className="app-container">
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setMobileOpen(false)}
         />
-      </div>
+      )}
+
+      <AdminSidebar
+        user={user}
+        onLogout={onLogout}
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        mobileOpen={mobileOpen}
+        setMobileOpen={setMobileOpen}
+      />
 
       <div
+        className="main-content admin-main-content"
         style={{
-          marginLeft: collapsed ? 72 : 248,
-          padding: 32,
-          minHeight: '100vh',
+          marginLeft: collapsed ? 0 : '',
           transition: 'margin-left 0.3s cubic-bezier(0.4,0,0.2,1)',
         }}
       >
-        <Outlet context={{ setCollapsed }} />
+        <main className="page-body admin-page-body">
+          <Outlet context={{ setCollapsed }} />
+        </main>
       </div>
     </div>
   );

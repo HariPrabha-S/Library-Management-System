@@ -1,22 +1,31 @@
 import { useState } from "react";
 
+const initialForm = {
+    student: "",
+    book: "",
+    department: "CSE",
+    issueDate: new Date().toISOString().split('T')[0],
+    returnDate: ""
+};
+
 export default function IssueBookModal({ onClose, onAdd }) {
 
-    const [form, setForm] = useState({
-        student: "",
-        book: "",
-        department: "CSE",
-        issueDate: new Date().toISOString().split('T')[0],
-        returnDate: ""
-    });
+    const [form, setForm] = useState(initialForm);
 
     const handleChange = (e) => {
-
         setForm({
             ...form,
             [e.target.name]: e.target.value
         });
+    };
 
+    const handleClear = () => {
+        setForm(initialForm);
+    };
+
+    const handleClearAndClose = () => {
+        setForm(initialForm);
+        onClose();
     };
 
     const handleSubmit = (e) => {
@@ -31,7 +40,37 @@ export default function IssueBookModal({ onClose, onAdd }) {
 
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 
-            <div className="bg-white p-8 rounded-2xl w-full max-w-md shadow-xl">
+            <div className="bg-white p-8 rounded-2xl w-full max-w-md shadow-xl relative">
+
+                {/* Close & Clear Button */}
+                <button
+                    type="button"
+                    onClick={handleClearAndClose}
+                    title="Clear & Close"
+                    style={{
+                        position: "absolute",
+                        top: "1.1rem",
+                        right: "1.1rem",
+                        width: "2rem",
+                        height: "2rem",
+                        borderRadius: "50%",
+                        border: "1.5px solid #e5e7eb",
+                        background: "#f3f4f6",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        fontSize: "1.1rem",
+                        color: "#6b7280",
+                        transition: "background 0.2s, color 0.2s",
+                        lineHeight: 1,
+                        zIndex: 10,
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = "#fee2e2"; e.currentTarget.style.color = "#ef4444"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "#f3f4f6"; e.currentTarget.style.color = "#6b7280"; }}
+                >
+                    ✕
+                </button>
 
                 <h2 className="font-heading text-2xl font-bold mb-6 text-[var(--color-primary)]">
                     Issue New Book
@@ -110,10 +149,10 @@ export default function IssueBookModal({ onClose, onAdd }) {
 
                         <button
                             type="button"
-                            onClick={onClose}
+                            onClick={handleClear}
                             className="px-6 py-2 border rounded-xl hover:bg-gray-50 transition"
                         >
-                            Cancel
+                            Clear
                         </button>
 
                         <button

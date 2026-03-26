@@ -39,6 +39,13 @@ body {
     font-family: var(--font-heading) !important;
 }
 
+/* Global button focus reset */
+button:focus,
+button:active {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
 /* Hide scrollbar but keep scroll functionality */
 .no-scrollbar {
     scrollbar-width: none;
@@ -102,38 +109,22 @@ body {
         @apply flex-1 p-8 overflow-y-auto;
     }
 
-    @media (max-width: 768px) {
-        .main-content {
-            margin-left: 0 !important;
-        }
-
-        .page-body {
-            padding: 20px 16px;
-        }
-
-        .app-header {
-            padding: 14px 16px;
-        }
-    }
-
     /* ========== SIDEBAR ========== */
     .sidebar {
         width: var(--sidebar-width);
-        @apply fixed top-0 left-0 h-screen flex flex-col z-[200] overflow-hidden;
+        @apply fixed top-0 left-0 flex flex-col z-[200] overflow-hidden;
+        height: 100dvh;
         background: var(--bg-sidebar);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 4px 0 24px rgba(121, 12, 12, 0.15);
+        box-shadow: 4px 0 24px rgba(121, 12, 12, 0.2);
     }
 
-    @media (max-width: 768px) {
-        .sidebar {
-            transform: translateX(-100%);
-        }
+    .sidebar.collapsed {
+        transform: translateX(-100%);
+    }
 
-        .sidebar.active {
-            transform: translateX(0);
-            width: 248px !important;
-        }
+    .sidebar.mobile-open {
+        transform: translateX(0) !important;
     }
 
     .sidebar-brand {
@@ -236,20 +227,6 @@ body {
         @apply flex items-center justify-between sticky top-0 z-[100] gap-5 bg-white border-b border-[#eef0f4];
         padding: 18px 36px;
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-    }
-
-    .responsive-flex {
-        @apply flex gap-3;
-    }
-
-    @media (max-width: 768px) {
-        .responsive-flex {
-            @apply flex-col;
-        }
-
-        .header-page-info {
-            @apply hidden md:block;
-        }
     }
 
     .header-page-info {
@@ -579,16 +556,6 @@ body {
 
     .library-cards-grid {
         @apply grid grid-cols-2 gap-7;
-    }
-
-    @media (max-width: 768px) {
-        .library-cards-grid {
-            @apply grid-cols-1;
-        }
-
-        .lib-sel-heading {
-            @apply text-[1.8rem];
-        }
     }
 
     .library-card {
@@ -980,9 +947,65 @@ body {
 /* ==========================================
    RESPONSIVE
    ========================================== */
-@media (max-width: 768px) {
+
+/* Hamburger: hidden on desktop, shown on mobile */
+.mobile-menu-btn {
+    display: none;
+}
+
+/* ── Tablet (≤ 1024px) ── */
+@media (max-width: 1024px) {
+    .admin-main-content {
+        margin-left: 0 !important;
+    }
+
+    /* Admin sidebar becomes a drawer on tablet */
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.mobile-open {
+        transform: translateX(0) !important;
+    }
+
     .main-content {
-        margin-left: 0;
+        margin-left: 0 !important;
+    }
+
+    .mobile-menu-btn {
+        display: flex !important;
+    }
+
+    .header-user-info {
+        display: none;
+    }
+
+    .app-header {
+        padding: 12px 20px;
+    }
+
+    .page-body {
+        padding: 20px;
+    }
+
+    .admin-page-body {
+        padding: 16px 20px !important;
+    }
+
+    /* Admin layout top-bar */
+    .admin-main-content {
+        margin-left: 0 !important;
+    }
+}
+
+/* ── Mobile (≤ 768px) ── */
+@media (max-width: 768px) {
+    .mobile-menu-btn {
+        display: flex !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
     }
 
     .sidebar {
@@ -990,7 +1013,7 @@ body {
     }
 
     .sidebar.mobile-open {
-        transform: translateX(0);
+        transform: translateX(0) !important;
     }
 
     .sidebar-overlay {
@@ -998,15 +1021,22 @@ body {
         position: fixed;
         inset: 0;
         background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
         z-index: 199;
-        animation: fadeIn 0.2s ease;
+        animation: fadeIn 0.3s ease;
     }
 
     .app-header {
-        padding: 14px 16px;
+        padding: 12px 16px;
+        gap: 10px;
     }
 
     .header-search {
+        display: none;
+    }
+
+    .header-search-wrap {
         display: none;
     }
 
@@ -1014,24 +1044,116 @@ body {
         display: none;
     }
 
+    .header-controls {
+        gap: 8px;
+    }
+
+    .page-body {
+        padding: 14px;
+    }
+
+    .admin-page-body {
+        padding: 12px 14px !important;
+    }
+
+    /* Stats grid: 2 cols on mobile */
+    .grid-cards {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    /* Library cards: single column */
     .library-cards-grid {
         grid-template-columns: 1fr;
     }
 
     .library-card {
-        padding: 24px;
+        padding: 20px;
+    }
+
+    /* Resources */
+    .resources-container {
+        padding: 16px;
     }
 
     .resources-header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
     }
 
     .search-bar {
         max-width: 100%;
+        width: 100%;
+    }
+
+    /* Tables: scrollable */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Manage page top action bar: wrap buttons */
+    .manage-page-actions {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    /* Modals: full width on small screens */
+    .modal-inner {
+        max-width: calc(100vw - 32px) !important;
+    }
+
+    /* Book modal grid: 1 col on phones */
+    .book-form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Dashboard header: stack vertically on phones */
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 8px;
+    }
+
+    /* Admin overdue section: responsive table */
+    .overdue-table-wrap {
+        overflow-x: auto;
+    }
+
+    /* Heading sizes */
+    .header-title {
+        font-size: 1.1rem !important;
+    }
+
+    .lib-sel-heading {
+        font-size: 1.6rem !important;
+    }
+}
+
+/* ── Small phones (≤ 480px) ── */
+@media (max-width: 480px) {
+    .grid-cards {
+        grid-template-columns: 1fr !important;
+    }
+
+    .stat-value {
+        font-size: 1.6rem !important;
+    }
+
+    .app-header {
+        padding: 10px 12px;
     }
 
     .page-body {
-        padding: 16px;
+        padding: 10px;
+    }
+
+    .admin-page-body {
+        padding: 10px !important;
+    }
+
+    .panel-header {
+        padding: 14px 16px;
     }
 }

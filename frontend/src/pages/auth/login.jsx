@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const ROLE_CONFIG = {
+    student: { label: "Roll Number", placeholder: "Enter your roll number" },
+    faculty: { label: "Faculty ID", placeholder: "Enter your faculty ID" },
+    admin: { label: "Admin ID", placeholder: "Enter your admin ID" },
+};
+
 export default function Login() {
     const [role, setRole] = useState("student");
     const [identifier, setIdentifier] = useState("");
@@ -73,14 +79,14 @@ export default function Login() {
 
                         <div>
                             <label className="block text-sm font-medium mb-1">
-                                Register Number
+                                {ROLE_CONFIG[role].label}
                             </label>
                             <input
                                 type="text"
                                 value={identifier}
                                 onChange={(e) => setIdentifier(e.target.value)}
                                 className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[#01898d]"
-                                placeholder="Enter your register number"
+                                placeholder={ROLE_CONFIG[role].placeholder}
                             />
                         </div>
 

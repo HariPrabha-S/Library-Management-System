@@ -3,28 +3,28 @@ import { Bell, Search, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const mockNotifications = [
-    { id: 1, text: 'Your fine payment of ₹15 was successful.', time: '1 hour ago', unread: true },
-    { id: 2, text: 'Book "Introduction to Algorithms" is due in 2 days.', time: '5 hours ago', unread: true },
-    { id: 3, text: 'Library will be closed for maintenance tomorrow.', time: '2 days ago', unread: false }
+    { id: 1, text: '5 overdue book reports generated.', time: '1 hour ago', unread: true },
+    { id: 2, text: 'New student registration pending approval.', time: '3 hours ago', unread: true },
+    { id: 3, text: 'Library system backup completed successfully.', time: '1 day ago', unread: false }
 ];
 
-const Header = ({ title, subtitle, user, onMenuClick }) => {
+const AdminHeader = ({ title, subtitle, user, onMenuClick }) => {
     const [searchVal, setSearchVal] = useState('');
     const [showNotif, setShowNotif] = useState(false);
     const navigate = useNavigate();
 
     const initials = user?.name
         ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-        : 'ST';
+        : 'AD';
 
     return (
         <header className="app-header">
-
             {/* Hamburger – mobile only */}
             <button
                 className="mobile-menu-btn header-icon-btn"
                 onClick={onMenuClick}
                 aria-label="Open menu"
+                style={{ display: 'none' }} // Hidden by default, controlled by CSS
             >
                 <Menu size={20} />
             </button>
@@ -43,10 +43,10 @@ const Header = ({ title, subtitle, user, onMenuClick }) => {
                     <input
                         type="text"
                         className="header-search"
-                        placeholder="Quick search..."
+                        placeholder="Search books, students..."
                         value={searchVal}
                         onChange={(e) => setSearchVal(e.target.value)}
-                        id="header-quick-search"
+                        id="admin-quick-search"
                     />
                 </div>
 
@@ -74,9 +74,9 @@ const Header = ({ title, subtitle, user, onMenuClick }) => {
                             </div>
                             <div style={{ maxHeight: 300, overflowY: 'auto' }}>
                                 {mockNotifications.map(n => (
-                                    <div key={n.id} style={{ padding: '16px 20px', borderBottom: '1px solid #f9f9f9', background: n.unread ? 'rgba(1,137,141,0.03)' : 'white' }}>
+                                    <div key={n.id} style={{ padding: '16px 20px', borderBottom: '1px solid #f9f9f9', background: n.unread ? 'rgba(121,12,12,0.03)' : 'white' }}>
                                         <div style={{ display: 'flex', gap: 10 }}>
-                                            <div style={{ width: 8, height: 8, borderRadius: '50%', background: n.unread ? 'var(--secondary-color)' : 'transparent', marginTop: 6 }} />
+                                            <div style={{ width: 8, height: 8, borderRadius: '50%', background: n.unread ? 'var(--primary-color)' : 'transparent', marginTop: 6 }} />
                                             <div>
                                                 <p style={{ fontSize: '0.85rem', color: 'var(--text-primary)', margin: '0 0 4px', lineHeight: 1.4 }}>{n.text}</p>
                                                 <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>{n.time}</p>
@@ -85,19 +85,19 @@ const Header = ({ title, subtitle, user, onMenuClick }) => {
                                     </div>
                                 ))}
                             </div>
-                            <div style={{ padding: 12, textAlign: 'center', borderTop: '1px solid var(--border-light)', fontSize: '0.8rem', color: 'var(--secondary-color)', cursor: 'pointer', fontWeight: 500 }}>
-                                View All Notifications
+                            <div style={{ padding: 12, textAlign: 'center', borderTop: '1px solid var(--border-light)', fontSize: '0.8rem', color: 'var(--primary-color)', cursor: 'pointer', fontWeight: 500 }}>
+                                View All Activity logs
                             </div>
                         </div>
                     )}
                 </div>
 
                 {/* User Avatar */}
-                <div className="header-user" onClick={() => navigate('/student/profile')} style={{ cursor: 'pointer' }}>
+                <div className="header-user" style={{ cursor: 'default' }}>
                     <div className="header-avatar">{initials}</div>
                     <div className="header-user-info">
-                        <span className="header-user-name">{user?.name || 'Student'}</span>
-                        <span className="header-user-role">Student</span>
+                        <span className="header-user-name">{user?.name || 'Administrator'}</span>
+                        <span className="header-user-role">System Admin</span>
                     </div>
                 </div>
             </div>
@@ -105,4 +105,4 @@ const Header = ({ title, subtitle, user, onMenuClick }) => {
     );
 };
 
-export default Header;
+export default AdminHeader;

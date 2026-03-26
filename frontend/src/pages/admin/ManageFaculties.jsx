@@ -4,7 +4,8 @@ import FacultyTable from "./components/FacultyTable";
 import FacultyFilters from "./components/FacultyFilters";
 import AddFacultyModal from "./components/AddFacultyModal";
 import FacultyReports from "./components/FacultyReports";
-import { FiFileText, FiArrowLeft } from "react-icons/fi";
+import BulkUploadModal from "./components/BulkUploadModal";
+import { FiFileText, FiArrowLeft, FiUploadCloud } from "react-icons/fi";
 
 export default function ManageFaculty() {
 
@@ -14,6 +15,7 @@ export default function ManageFaculty() {
     const [departmentFilter, setDepartmentFilter] = useState("");
     const [selectedFaculty, setSelectedFaculty] = useState([]);
     const [showModal, setShowModal] = useState(false);
+    const [showBulkModal, setShowBulkModal] = useState(false);
 
     // Report states
     const [showReportModal, setShowReportModal] = useState(false);
@@ -156,8 +158,15 @@ export default function ManageFaculty() {
                         Generate Report
                     </button>
                     <button
+                        onClick={() => setShowBulkModal(true)}
+                        className="bg-white text-emerald-700 border border-emerald-400 px-5 py-2 rounded-xl hover:bg-emerald-50 transition flex items-center gap-2 font-semibold"
+                    >
+                        <FiUploadCloud />
+                        Upload Excel
+                    </button>
+                    <button
                         onClick={() => setShowModal(true)}
-                        className="bg-[var(--color-primary)] text-white px-5 py-2 rounded-xl hover:opacity-90 transition"
+                        className="bg-[var(--color-primary)] text-white px-5 py-2 rounded-xl hover:opacity-90 transition flex items-center gap-2 font-semibold"
                     >
                         + Add Faculty
                     </button>
@@ -217,6 +226,14 @@ export default function ManageFaculty() {
                 <AddFacultyModal
                     setShowModal={setShowModal}
                     setFaculties={setFaculty}
+                />
+            )}
+
+            {showBulkModal && (
+                <BulkUploadModal
+                    type="faculty"
+                    onUpload={(rows) => setFaculty(prev => [...prev, ...rows])}
+                    onClose={() => setShowBulkModal(false)}
                 />
             )}
 

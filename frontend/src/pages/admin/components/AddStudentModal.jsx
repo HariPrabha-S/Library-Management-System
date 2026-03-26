@@ -1,14 +1,25 @@
 import { useState } from "react";
 
+const initialFormData = {
+    name: "",
+    rollNo: "",
+    department: "CSE",
+    year: "1",
+    email: "",
+};
+
 export default function AddStudentModal({ setShowModal, setStudents }) {
 
-    const [formData, setFormData] = useState({
-        name: "",
-        rollNo: "",
-        department: "CSE",
-        year: "1",
-        email: "",
-    });
+    const [formData, setFormData] = useState(initialFormData);
+
+    const handleClear = () => {
+        setFormData(initialFormData);
+    };
+
+    const handleClearAndClose = () => {
+        setFormData(initialFormData);
+        setShowModal(false);
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -25,7 +36,37 @@ export default function AddStudentModal({ setShowModal, setStudents }) {
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[300] backdrop-blur-md animate-in fade-in duration-300 p-4">
 
-            <div className="bg-white p-8 rounded-2xl w-full max-w-md">
+            <div className="bg-white p-8 rounded-2xl w-full max-w-md relative">
+
+                {/* Close & Clear Button */}
+                <button
+                    type="button"
+                    onClick={handleClearAndClose}
+                    title="Clear & Close"
+                    style={{
+                        position: "absolute",
+                        top: "1.1rem",
+                        right: "1.1rem",
+                        width: "2rem",
+                        height: "2rem",
+                        borderRadius: "50%",
+                        border: "1.5px solid #e5e7eb",
+                        background: "#f3f4f6",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        fontSize: "1.1rem",
+                        color: "#6b7280",
+                        transition: "background 0.2s, color 0.2s",
+                        lineHeight: 1,
+                        zIndex: 10,
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = "#fee2e2"; e.currentTarget.style.color = "#ef4444"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "#f3f4f6"; e.currentTarget.style.color = "#6b7280"; }}
+                >
+                    ✕
+                </button>
 
                 <h2 className="font-heading text-2xl font-bold mb-6 text-[var(--color-primary)]">
                     Add New Student
@@ -96,10 +137,10 @@ export default function AddStudentModal({ setShowModal, setStudents }) {
 
                         <button
                             type="button"
-                            onClick={() => setShowModal(false)}
+                            onClick={handleClear}
                             className="px-6 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition"
                         >
-                            Cancel
+                            Clear
                         </button>
 
                         <button

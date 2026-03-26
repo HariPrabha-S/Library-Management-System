@@ -40,7 +40,7 @@ const Dashboard = ({ user }) => {
       dueSoon: 1,
       totalFine: 25,
       pendingReqs: 2,
-      selectedLibrary: 'Main Library',
+          selectedLibrary: 'Main Library',
       libraryFocus: 'Main Library',
     });
     setActivity([

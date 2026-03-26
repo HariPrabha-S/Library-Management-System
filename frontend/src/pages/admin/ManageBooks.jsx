@@ -5,11 +5,13 @@ import BookFilters from "./components/BookFilters";
 import AdvancedBookFilters from "./components/AdvancedBookFilters";
 import AddBookModal from "./components/AddBookModal";
 import BookReports from "./components/BookReports";
-import { FiFileText, FiArrowLeft } from "react-icons/fi";
+import BulkUploadModal from "./components/BulkUploadModal";
+import { FiFileText, FiArrowLeft, FiUploadCloud } from "react-icons/fi";
 export default function ManageBooks() {
 
     const [books, setBooks] = useState([]);
     const [showModal, setShowModal] = useState(false);
+    const [showBulkModal, setShowBulkModal] = useState(false);
     const [selectedBooks, setSelectedBooks] = useState([]);
     const [filters, setFilters] = useState({
         keyword: "",
@@ -166,6 +168,13 @@ export default function ManageBooks() {
                         Generate Report
                     </button>
                     <button
+                        onClick={() => setShowBulkModal(true)}
+                        className="bg-white text-emerald-700 border border-emerald-400 px-5 py-2 rounded-xl hover:bg-emerald-50 transition flex items-center gap-2 font-semibold"
+                    >
+                        <FiUploadCloud />
+                        Upload Excel
+                    </button>
+                    <button
                         onClick={() => setShowModal(true)}
                         className="bg-[var(--color-primary)] text-white px-5 py-2 rounded-xl hover:opacity-90 transition flex items-center gap-2 font-semibold shadow-lg shadow-[var(--color-primary)]/10"
                     >
@@ -227,6 +236,14 @@ export default function ManageBooks() {
                 <AddBookModal
                     setShowModal={setShowModal}
                     setBooks={setBooks}
+                />
+            )}
+
+            {showBulkModal && (
+                <BulkUploadModal
+                    type="book"
+                    onUpload={(rows) => setBooks(prev => [...prev, ...rows])}
+                    onClose={() => setShowBulkModal(false)}
                 />
             )}
 

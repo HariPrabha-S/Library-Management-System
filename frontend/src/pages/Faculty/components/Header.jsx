@@ -8,7 +8,7 @@ const mockNotifications = [
   { id: 3, text: 'New digital resources added to Department Library.', time: '2 days ago', unread: false }
 ];
 
-const Header = ({ title, subtitle, user, onToggleSidebar }) => {
+const Header = ({ title, subtitle, user, onMenuClick }) => {
   const [searchVal, setSearchVal] = useState('');
   const [showNotif, setShowNotif] = useState(false);
   const navigate = useNavigate();
@@ -19,11 +19,12 @@ const Header = ({ title, subtitle, user, onToggleSidebar }) => {
 
   return (
     <header className="app-header">
-      {/* Mobile Toggle */}
+
+      {/* Hamburger – mobile only */}
       <button
-        className="header-icon-btn md:hidden"
-        style={{ marginLeft: -8, marginRight: 8 }}
-        onClick={onToggleSidebar}
+        className="mobile-menu-btn header-icon-btn"
+        onClick={onMenuClick}
+        aria-label="Open menu"
       >
         <Menu size={20} />
       </button>
@@ -61,10 +62,9 @@ const Header = ({ title, subtitle, user, onToggleSidebar }) => {
             <span className="notif-dot"></span>
           </button>
 
-          {/* Dummy Notifications Panel */}
           {showNotif && (
             <div style={{
-              position: 'absolute', top: 50, right: 0, width: 320, background: 'white',
+              position: 'absolute', top: 50, right: 0, width: 300, background: 'white',
               border: '1px solid var(--border-light)', borderRadius: 12, boxShadow: 'var(--shadow-md)',
               zIndex: 1000, overflow: 'hidden'
             }} className="animate-slide-up">
