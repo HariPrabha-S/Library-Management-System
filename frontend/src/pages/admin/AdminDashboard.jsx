@@ -30,6 +30,7 @@ function fineSeverity(fine) {
 
 export default function AdminDashboard() {
     const [dateTime, setDateTime] = useState(new Date());
+    const [processedRequests, setProcessedRequests] = useState({});
 
     const [stats, setStats] = useState({
         totalBooks: "100",
@@ -46,17 +47,6 @@ export default function AdminDashboard() {
     const sortedOverdue = [...overdueRecords].sort((a, b) => b.fine - a.fine);
     const topOverdue = sortedOverdue.slice(0, 5);
     const totalOverdueFine = sortedOverdue.reduce((s, r) => s + r.fine, 0);
-
-    const [history, setHistory] = useState([]);
-
-    const handleUndo = () => {
-        if (history.length === 0) return;
-        const lastAction = history[history.length - 1];
-        setHistory(prev => prev.slice(0, -1));
-
-        // Example undo logic: if last action was a "Processed" request, move it back or something
-        alert(`Undoing last action: ${lastAction.type}`);
-    };
 
     /* Live clock */
     useEffect(() => {
@@ -87,17 +77,6 @@ export default function AdminDashboard() {
                                     Welcome back! Here's your LMS overview.
                                 </p>
                             </div>
-
-                            {/* UNDO BUTTON */}
-                            {history.length > 0 && (
-                                <button
-                                    onClick={handleUndo}
-                                    className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl hover:bg-amber-100 transition-all font-bold text-sm shadow-sm animate-fade-in"
-                                >
-                                    <FiRotateCcw className="animate-spin-slow" />
-                                    REVERT
-                                </button>
-                            )}
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3 md:gap-6 bg-white/50 backdrop-blur-sm p-3 rounded-xl border border-gray-100 shadow-sm">
@@ -300,16 +279,36 @@ export default function AdminDashboard() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <button
-                                                    onClick={() => {
-                                                        setHistory(prev => [...prev, { type: 'Process Request', id: req.id, data: req }]);
-                                                        // In a real app, actually remove/move the request
-                                                        alert(`Processing request for ${req.requester}`);
-                                                    }}
-                                                    className="text-(--color-secondary) font-bold hover:underline"
-                                                >
-                                                    Process
-                                                </button>
+                                                <div className="flex justify-end items-center gap-4">
+                                                    {processedRequests[req.id] ? (
+                                                        <button
+                                                            onClick={() => {
+                                                                setProcessedRequests((prev) => ({
+                                                                    ...prev,
+                                                                    [req.id]: false,
+                                                                }));
+                                                                alert(`Reverting request for ${req.requester}`);
+                                                            }}
+                                                            className="flex items-center gap-2 text-amber-600 hover:text-amber-800 transition font-bold"
+                                                        >
+                                                            <FiRotateCcw size={16} /> Revert
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => {
+                                                                setProcessedRequests((prev) => ({
+                                                                    ...prev,
+                                                                    [req.id]: true,
+                                                                }));
+                                                                // In a real app, actually remove/move the request
+                                                                alert(`Processing request for ${req.requester}`);
+                                                            }}
+                                                            className="flex items-center gap-2 text-(--color-secondary) hover:text-teal-700 transition font-bold"
+                                                        >
+                                                            <FiCheckCircle size={16} /> Process
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}

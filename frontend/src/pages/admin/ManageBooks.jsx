@@ -169,7 +169,7 @@ export default function ManageBooks() {
                     </button>
                     <button
                         onClick={() => setShowBulkModal(true)}
-                        className="bg-white text-emerald-700 border border-emerald-400 px-5 py-2 rounded-xl hover:bg-emerald-50 transition flex items-center gap-2 font-semibold"
+                        className="bg-white text-[var(--color-secondary)] border border-[var(--color-secondary)] px-5 py-2 rounded-xl hover:bg-[var(--color-secondary)]/5 transition flex items-center gap-2 font-semibold"
                     >
                         <FiUploadCloud />
                         Upload Excel

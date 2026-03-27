@@ -1382,20 +1382,21 @@ button:active {
     background: linear-gradient(180deg, #790c0c 0%, #5a0909 100%) !important;
     color: white !important;
     border: none !important;
-    border-radius: 0 8px 8px 0 !important;
-    width: 24px !important;
-    height: 56px !important;
+    border-radius: 0 6px 6px 0 !important;
+    width: 16px !important;
+    height: 40px !important;
     display: none !important;
     /* Managed by JS/Classes but can use sibling selector */
     align-items: center !important;
     justify-content: center !important;
     cursor: pointer !important;
-    box-shadow: 4px 0 12px rgba(121, 12, 12, 0.3) !important;
+    box-shadow: 2px 0 8px rgba(121, 12, 12, 0.3) !important;
     transition: width 0.2s ease, opacity 0.3s ease !important;
+    font-size: 12px !important;
 }
 
 .floating-reopen-btn:hover {
-    width: 32px !important;
+    width: 24px !important;
 }
 
 /* Logic: Show arrow if sidebar is collapsed on desktop OR if it's hidden on mobile (tablet/phone) without being open */
@@ -1409,4 +1410,107 @@ button:active {
     .sidebar:not(.mobile-open)~.floating-reopen-btn {
         display: flex !important;
     }
+}
+
+/* ========== PROCESS/REVERT BUTTON TOGGLE ========== */
+
+/* Default state - show Process buttons */
+.action-button {
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Process button styling */
+.btn-process,
+[class*="process-btn"] {
+    background-color: var(--secondary-color);
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    min-height: 36px;
+    transition: all 0.3s ease;
+}
+
+.btn-process:hover,
+[class*="process-btn"]:hover {
+    background-color: #019295;
+    box-shadow: 0 2px 8px rgba(1, 137, 141, 0.3);
+}
+
+.btn-process:active {
+    transform: scale(0.98);
+}
+
+/* Revert button styling */
+.btn-revert,
+[class*="revert-btn"] {
+    background-color: #ef4444;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    min-height: 36px;
+    transition: all 0.3s ease;
+}
+
+.btn-revert:hover,
+[class*="revert-btn"]:hover {
+    background-color: #dc2626;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.btn-revert:active {
+    transform: scale(0.98);
+}
+
+/* Hidden state - when toggled */
+.action-button.hidden,
+.btn-process.hidden,
+.btn-revert.hidden {
+    display: none !important;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Show state */
+.action-button.show,
+.btn-process.show,
+.btn-revert.show {
+    display: inline-flex !important;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* Action cell - contains both buttons */
+.action-cell {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+}
+
+/* Processing state - show revert, hide process */
+.action-row.processed .btn-process {
+    display: none !important;
+}
+
+.action-row.processed .btn-revert {
+    display: inline-flex !important;
+}
+
+.action-row:not(.processed) .btn-revert {
+    display: none !important;
+}
+
+.action-row:not(.processed) .btn-process {
+    display: inline-flex !important;
 }
