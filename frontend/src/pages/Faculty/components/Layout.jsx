@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
@@ -21,6 +21,11 @@ const Layout = ({ user, onLogout }) => {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  // Close mobile sidebar when navigating
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
   const currentRoute = routeTitles[location.pathname] || { title: 'Library Portal', subtitle: '' };
 
   return (

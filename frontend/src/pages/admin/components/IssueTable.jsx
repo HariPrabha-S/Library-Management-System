@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { FiCheckCircle } from "react-icons/fi";
+import { FiCheckCircle, FiRotateCcw } from "react-icons/fi";
 import { User, Book, XCircle, Calendar, Clock, Bookmark, Hash } from "lucide-react";
 
-export default function IssueTable({ issues, markReturned }) {
+export default function IssueTable({ issues, markReturned, revertReturn }) {
     const [viewedIssue, setViewedIssue] = useState(null);
 
     return (
@@ -18,7 +18,7 @@ export default function IssueTable({ issues, markReturned }) {
                                 <th className="py-4 px-3">Issue Date</th>
                                 <th className="py-4 px-3">Return Date</th>
                                 <th className="py-4 px-3">Status</th>
-                                <th className="py-4 px-3">Action</th>
+                                <th className="py-4 px-3 text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -60,17 +60,29 @@ export default function IssueTable({ issues, markReturned }) {
                                         </td>
 
                                         <td className="py-4 px-3">
-                                            {issue.status === "Issued" && (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        markReturned(issue._id);
-                                                    }}
-                                                    className="flex items-center gap-2 text-emerald-600 hover:text-emerald-800 transition font-semibold"
-                                                >
-                                                    <FiCheckCircle size={16} /> Return
-                                                </button>
-                                            )}
+                                            <div className="flex justify-center items-center gap-3">
+                                                {issue.status === "Issued" ? (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            markReturned(issue._id);
+                                                        }}
+                                                        className="flex items-center gap-2 text-emerald-600 hover:text-emerald-800 transition font-bold"
+                                                    >
+                                                        <FiCheckCircle size={16} /> Return
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            revertReturn(issue._id);
+                                                        }}
+                                                        className="flex items-center gap-2 text-amber-600 hover:text-amber-800 transition font-bold"
+                                                    >
+                                                        <FiRotateCcw size={16} /> Revert
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))

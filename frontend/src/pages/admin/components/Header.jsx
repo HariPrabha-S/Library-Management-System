@@ -24,7 +24,6 @@ const AdminHeader = ({ title, subtitle, user, onMenuClick }) => {
                 className="mobile-menu-btn header-icon-btn"
                 onClick={onMenuClick}
                 aria-label="Open menu"
-                style={{ display: 'none' }} // Hidden by default, controlled by CSS
             >
                 <Menu size={20} />
             </button>

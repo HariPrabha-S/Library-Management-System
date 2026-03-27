@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { X } from "lucide-react";
 
 const initialForm = {
     student: "",
@@ -36,11 +37,19 @@ export default function IssueBookModal({ onClose, onAdd }) {
         onClose();
     };
 
+    useEffect(() => {
+        const handleEsc = (e) => {
+            if (e.key === "Escape") handleClearAndClose();
+        };
+        window.addEventListener("keydown", handleEsc);
+        return () => window.removeEventListener("keydown", handleEsc);
+    }, []);
+
     return (
 
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[300] backdrop-blur-md animate-in fade-in duration-300 p-4">
 
-            <div className="bg-white p-8 rounded-2xl w-full max-w-md shadow-xl relative">
+            <div className="bg-white p-8 rounded-2xl w-full max-w-lg shadow-2xl relative animate-in zoom-in duration-200">
 
                 {/* Close & Clear Button */}
                 <button
@@ -49,65 +58,64 @@ export default function IssueBookModal({ onClose, onAdd }) {
                     title="Clear & Close"
                     style={{
                         position: "absolute",
-                        top: "1.1rem",
-                        right: "1.1rem",
-                        width: "2rem",
-                        height: "2rem",
+                        top: "1.2rem",
+                        right: "1.2rem",
+                        width: "2.5rem",
+                        height: "2.5rem",
                         borderRadius: "50%",
-                        border: "1.5px solid #e5e7eb",
-                        background: "#f3f4f6",
+                        border: "1px solid #e5e7eb",
+                        background: "#fff",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         cursor: "pointer",
-                        fontSize: "1.1rem",
                         color: "#6b7280",
-                        transition: "background 0.2s, color 0.2s",
-                        lineHeight: 1,
+                        transition: "all 0.2s ease",
                         zIndex: 10,
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = "#fee2e2"; e.currentTarget.style.color = "#ef4444"; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "#f3f4f6"; e.currentTarget.style.color = "#6b7280"; }}
+                    onMouseEnter={e => { e.currentTarget.style.background = "#fee2e2"; e.currentTarget.style.color = "#ef4444"; e.currentTarget.style.borderColor = "#fecaca"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.color = "#6b7280"; e.currentTarget.style.borderColor = "#e5e7eb"; }}
                 >
-                    ✕
+                    <X size={20} />
                 </button>
 
-                <h2 className="font-heading text-2xl font-bold mb-6 text-[var(--color-primary)]">
+                <h2 className="text-2xl font-bold mb-8 text-[var(--color-primary)] font-heading flex flex-col">
                     Issue New Book
+                    <span className="text-xs font-normal text-gray-500 mt-1 uppercase tracking-wider">Fill in transaction details</span>
                 </h2>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Student Name</label>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Student Name</label>
                         <input
                             name="student"
                             required
-                            placeholder="e.g. Arun Kumar"
+                            placeholder="Full name of student"
                             value={form.student}
                             onChange={handleChange}
-                            className="w-full border border-gray-200 px-4 py-2 rounded-xl focus:border-[var(--color-primary)] focus:shadow-md transition-all duration-300 outline-none"
+                            className="w-full border border-gray-200 px-4 py-3 rounded-xl bg-gray-50/50 focus:bg-white focus:border-[var(--color-primary)] focus:ring-4 focus:ring-(--color-primary)/5 transition-all outline-none"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Book Title</label>
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Book Title / Accession No</label>
                         <input
                             name="book"
                             required
-                            placeholder="e.g. Data Structures"
+                            placeholder="Enter book name or ID"
                             value={form.book}
                             onChange={handleChange}
-                            className="w-full border border-gray-200 px-4 py-2 rounded-xl focus:border-[var(--color-primary)] focus:shadow-md transition-all duration-300 outline-none"
+                            className="w-full border border-gray-200 px-4 py-3 rounded-xl bg-gray-50/50 focus:bg-white focus:border-[var(--color-primary)] focus:ring-4 focus:ring-(--color-primary)/5 transition-all outline-none"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Department</label>
                         <select
                             name="department"
                             value={form.department}
                             onChange={handleChange}
-                            className="w-full border border-gray-200 px-4 py-2 rounded-xl focus:border-[var(--color-primary)] focus:shadow-md transition-all duration-300 outline-none bg-white cursor-pointer text-sm"
+                            className="w-full border border-gray-200 px-4 py-3 rounded-xl bg-gray-50/50 focus:bg-white focus:border-[var(--color-primary)] focus:ring-4 focus:ring-(--color-primary)/5 transition-all outline-none cursor-pointer"
                         >
                             <option value="CSE">CSE</option>
                             <option value="AIDS">AIDS</option>
@@ -120,46 +128,46 @@ export default function IssueBookModal({ onClose, onAdd }) {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Issue Date</label>
                             <input
                                 type="date"
                                 name="issueDate"
                                 required
                                 value={form.issueDate}
                                 onChange={handleChange}
-                                className="w-full border border-gray-200 px-4 py-2 rounded-xl focus:border-[var(--color-primary)] focus:shadow-md transition-all duration-300 outline-none"
+                                className="w-full border border-gray-200 px-4 py-3 rounded-xl bg-gray-50/50 focus:bg-white focus:border-[var(--color-primary)] focus:ring-4 focus:ring-(--color-primary)/5 transition-all outline-none"
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Return Date</label>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Return Date</label>
                             <input
                                 type="date"
                                 name="returnDate"
                                 required
                                 value={form.returnDate}
                                 onChange={handleChange}
-                                className="w-full border border-gray-200 px-4 py-2 rounded-xl focus:border-[var(--color-primary)] focus:shadow-md transition-all duration-300 outline-none"
+                                className="w-full border border-gray-200 px-4 py-3 rounded-xl bg-gray-50/50 focus:bg-white focus:border-[var(--color-primary)] focus:ring-4 focus:ring-(--color-primary)/5 transition-all outline-none"
                             />
                         </div>
                     </div>
 
-                    <div className="flex justify-end gap-4 pt-4">
+                    <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 mt-4">
 
                         <button
                             type="button"
                             onClick={handleClear}
-                            className="px-6 py-2 border rounded-xl hover:bg-gray-50 transition"
+                            className="px-6 py-2.5 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 hover:text-gray-900 transition font-medium"
                         >
-                            Clear
+                            Clear Form
                         </button>
 
                         <button
                             type="submit"
-                            className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-xl hover:opacity-90 transition font-medium"
+                            className="px-8 py-2.5 bg-[var(--color-primary)] text-white rounded-xl hover:opacity-90 shadow-lg shadow-[var(--color-primary)]/20 transition font-bold"
                         >
-                            Issue Book
+                            Confirm Issue
                         </button>
 
                     </div>

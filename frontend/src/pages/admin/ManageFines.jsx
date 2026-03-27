@@ -1,4 +1,4 @@
-import { FiDollarSign, FiSearch, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
+import { FiDollarSign, FiSearch, FiCheckCircle, FiAlertCircle, FiRotateCcw } from "react-icons/fi";
 import { User, Mail, GraduationCap, XCircle, BadgeCheck, Phone, Briefcase, BookOpen, AlertOctagon } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -20,13 +20,18 @@ export default function ManageFines() {
         setFines(prev => prev.map(f => f.id === id ? { ...f, status: "Paid" } : f));
     }
 
+    const handleRevertFine = (id) => {
+        if (!window.confirm("Revert this fine to unpaid?")) return;
+        setFines(prev => prev.map(f => f.id === id ? { ...f, status: "Unpaid" } : f));
+    }
+
     const filteredFines = fines.filter(f => f.name.toLowerCase().includes(search.toLowerCase()));
 
     return (
         <>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="font-heading text-3xl font-bold text-[var(--color-primary)] flex items-center gap-3">
-                    <FiAlertCircle /> Manage Fines
+                    <FiAlertCircle /> Manage Records
                 </h1>
             </div>
 
@@ -55,7 +60,7 @@ export default function ManageFines() {
                                 <th className="py-4 px-3 whitespace-nowrap">Reason</th>
                                 <th className="py-4 px-3 whitespace-nowrap">Amount (₹)</th>
                                 <th className="py-4 px-3 whitespace-nowrap">Status</th>
-                                <th className="py-4 px-3 whitespace-nowrap">Action</th>
+                                <th className="py-4 px-3 whitespace-nowrap text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -89,16 +94,32 @@ export default function ManageFines() {
                                             </span>
                                         </td>
                                         <td className="py-4 px-3 whitespace-nowrap align-middle">
-                                            {fine.status === 'Unpaid' ? (
-                                                <button
-                                                    onClick={() => handleClearFine(fine.id)}
-                                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-lg text-xs font-bold transition-colors"
-                                                >
-                                                    <FiCheckCircle size={14} /> Clear Fine
-                                                </button>
-                                            ) : (
-                                                <span className="text-gray-400 text-xs font-medium italic">Cleared</span>
-                                            )}
+                                            <div className="flex items-center gap-3">
+                                                {fine.status === 'Unpaid' ? (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleClearFine(fine.id);
+                                                        }}
+                                                        className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-lg text-xs font-bold transition-all shadow-sm border border-emerald-100"
+                                                    >
+                                                        <FiCheckCircle size={14} /> Clear Fine
+                                                    </button>
+                                                ) : (
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-gray-400 text-xs font-medium italic">Cleared</span>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleRevertFine(fine.id);
+                                                            }}
+                                                            className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg text-xs font-bold transition-all shadow-sm"
+                                                        >
+                                                            <FiRotateCcw size={14} /> Revert
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))

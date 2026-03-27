@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import AdminActivity from "./components/Activity";
 import AdminRecent from "./components/Recent";
-import { FiCalendar, FiClock, FiBook, FiBookOpen, FiCheckCircle, FiAlertCircle, FiTrendingUp, FiPlusCircle, FiMessageSquare } from "react-icons/fi";
+import { FiCalendar, FiClock, FiBook, FiBookOpen, FiCheckCircle, FiAlertCircle, FiTrendingUp, FiPlusCircle, FiRotateCcw } from "react-icons/fi";
 
 /* ── Dummy overdue data ── */
 const overdueRecords = [
@@ -47,6 +47,17 @@ export default function AdminDashboard() {
     const topOverdue = sortedOverdue.slice(0, 5);
     const totalOverdueFine = sortedOverdue.reduce((s, r) => s + r.fine, 0);
 
+    const [history, setHistory] = useState([]);
+
+    const handleUndo = () => {
+        if (history.length === 0) return;
+        const lastAction = history[history.length - 1];
+        setHistory(prev => prev.slice(0, -1));
+
+        // Example undo logic: if last action was a "Processed" request, move it back or something
+        alert(`Undoing last action: ${lastAction.type}`);
+    };
+
     /* Live clock */
     useEffect(() => {
         const t = setInterval(() => setDateTime(new Date()), 1000);
@@ -67,13 +78,26 @@ export default function AdminDashboard() {
 
                     {/* ── HEADER ── */}
                     <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4 dashboard-header">
-                        <div>
-                            <h1 className="font-heading text-2xl md:text-3xl font-bold text-(--color-primary)">
-                                Library Dashboard
-                            </h1>
-                            <p className="text-gray-600 opacity-80 text-sm md:text-base">
-                                Welcome back! Here's your LMS overview.
-                            </p>
+                        <div className="flex items-center gap-4">
+                            <div>
+                                <h1 className="font-heading text-2xl md:text-3xl font-bold text-(--color-primary)">
+                                    Library Dashboard
+                                </h1>
+                                <p className="text-gray-600 opacity-80 text-sm md:text-base">
+                                    Welcome back! Here's your LMS overview.
+                                </p>
+                            </div>
+
+                            {/* UNDO BUTTON */}
+                            {history.length > 0 && (
+                                <button
+                                    onClick={handleUndo}
+                                    className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl hover:bg-amber-100 transition-all font-bold text-sm shadow-sm animate-fade-in"
+                                >
+                                    <FiRotateCcw className="animate-spin-slow" />
+                                    REVERT
+                                </button>
+                            )}
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3 md:gap-6 bg-white/50 backdrop-blur-sm p-3 rounded-xl border border-gray-100 shadow-sm">
@@ -276,7 +300,14 @@ export default function AdminDashboard() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <button className="text-(--color-secondary) font-bold hover:underline">
+                                                <button
+                                                    onClick={() => {
+                                                        setHistory(prev => [...prev, { type: 'Process Request', id: req.id, data: req }]);
+                                                        // In a real app, actually remove/move the request
+                                                        alert(`Processing request for ${req.requester}`);
+                                                    }}
+                                                    className="text-(--color-secondary) font-bold hover:underline"
+                                                >
                                                     Process
                                                 </button>
                                             </td>

@@ -3,21 +3,32 @@ import { BookOpen, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 
 
 const DepartmentLibrary = ({ user }) => {
-  const [books, setBooks]         = useState([]);
-  const [loading, setLoading]     = useState(true);
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [requestedIds, setRequestedIds] = useState([]);
   const [searchSem, setSearchSem] = useState('All');
 
   useEffect(() => {
-    const dept = user?.dept || user?.department || '';
-    setLoading(true);
-    fetch(`http://localhost:5000/api/books/department?dept=${dept}`)
-      .then(r => r.json())
-      .then(data => { setBooks(data); setLoading(false); })
-      .catch((err) => { 
-        console.error('Dept fetch error:', err);
-        setLoading(false); 
-      });
+    // const dept = user?.dept || user?.department || '';
+    // setLoading(true);
+    // fetch(`http://localhost:5000/api/books/department?dept=${dept}`)
+    //   .then(r => r.json())
+    //   .then(data => { setBooks(data); setLoading(false); })
+    //   .catch((err) => { 
+    //     console.error('Dept fetch error:', err);
+    //     setLoading(false); 
+    //   });
+
+    setTimeout(() => {
+      const dummyDeptBooks = [
+        { _id: 'd1', subject: 'Operating Systems', semester: 'Semester IV', title: 'Silberschatz OS Concepts', available: true },
+        { _id: 'd2', subject: 'Database Management', semester: 'Semester IV', title: 'Korth Database Systems', available: false, status: 'On Loan' },
+        { _id: 'd3', subject: 'Cloud Computing', semester: 'Semester VI', title: 'AWS Architect Guide', available: true },
+        { _id: 'd4', subject: 'Web Development', semester: 'Semester VI', title: 'React JS Mastery', available: true },
+      ];
+      setBooks(dummyDeptBooks);
+      setLoading(false);
+    }, 500);
   }, [user]);
 
   const handleRequest = async (book) => {
@@ -27,14 +38,14 @@ const DepartmentLibrary = ({ user }) => {
       const response = await fetch('http://localhost:5000/api/books/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           studentId: user.studentId,
           bookId: book.id,
           bookName: book.title,
           library: book.library || 'Department'
         }),
       });
-      
+
       const data = await response.json();
       if (response.ok) {
         setRequestedIds(prev => [...prev, book.id]);

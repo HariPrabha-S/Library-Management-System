@@ -13,21 +13,34 @@ const DigitalResources = () => {
   }, [filterType]);
 
   const fetchResources = async () => {
-    try {
-      setLoading(true);
-      let url = 'http://localhost:5000/api/resources';
-      if (filterType !== 'All') {
-        url += `?type=${filterType}`;
-      }
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch resources');
-      const data = await response.json();
-      setResources(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
+    // try {
+    //   setLoading(true);
+    //   let url = 'http://localhost:5000/api/resources';
+    //   if (filterType !== 'All') {
+    //     url += `?type=${filterType}`;
+    //   }
+    //   const response = await fetch(url);
+    //   if (!response.ok) throw new Error('Failed to fetch resources');
+    //   const data = await response.json();
+    //   setResources(data);
+    // } catch (err) {
+    //   setError(err.message);
+    // } finally {
+    //   setLoading(false);
+    // }
+
+    setTimeout(() => {
+      const dummyResources = [
+        { id: 1, title: 'Quantum Computing for Dummies', author: 'Dr. John Doe', type: 'E-Book', subject: 'Physics', thumbnail: 'https://placehold.co/150x200?text=E-Book' },
+        { id: 2, title: 'Advances in Deep Learning', author: 'AI Research Group', type: 'Research Paper', subject: 'Computer Science', thumbnail: 'https://placehold.co/150x200?text=Research' },
+        { id: 3, title: 'Web Development 2024', author: 'Tech Academy', type: 'Video Lecture', subject: 'IT', thumbnail: 'https://placehold.co/150x200?text=Video' },
+        { id: 4, title: 'Global Economics Journal', author: 'World Bank', type: 'Journal', subject: 'Economics', thumbnail: 'https://placehold.co/150x200?text=Journal' },
+      ];
+
+      const filtered = filterType === 'All' ? dummyResources : dummyResources.filter(r => r.type === filterType);
+      setResources(filtered);
       setLoading(false);
-    }
+    }, 500);
   };
 
   const filteredResources = resources.filter(res =>

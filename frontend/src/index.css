@@ -1157,3 +1157,42 @@ button:active {
         padding: 14px 16px;
     }
 }
+
+/* ── Floating Sidebar Re-open Arrow ── */
+.floating-reopen-btn {
+    position: fixed !important;
+    top: 50% !important;
+    left: 0 !important;
+    transform: translateY(-50%) !important;
+    z-index: 201 !important;
+    background: linear-gradient(180deg, #790c0c 0%, #5a0909 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 0 8px 8px 0 !important;
+    width: 24px !important;
+    height: 56px !important;
+    display: none !important;
+    /* Managed by JS/Classes but can use sibling selector */
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-shadow: 4px 0 12px rgba(121, 12, 12, 0.3) !important;
+    transition: width 0.2s ease, opacity 0.3s ease !important;
+}
+
+.floating-reopen-btn:hover {
+    width: 32px !important;
+}
+
+/* Logic: Show arrow if sidebar is collapsed on desktop OR if it's hidden on mobile (tablet/phone) without being open */
+@media (min-width: 1025px) {
+    .sidebar.collapsed~.floating-reopen-btn {
+        display: flex !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .sidebar:not(.mobile-open)~.floating-reopen-btn {
+        display: flex !important;
+    }
+}

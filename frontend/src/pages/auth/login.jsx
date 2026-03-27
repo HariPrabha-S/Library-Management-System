@@ -62,19 +62,26 @@ export default function Login() {
 
                     <form className="space-y-5" onSubmit={handleSubmit}>
 
-                        <div>
-                            <label className="block text-sm font-medium mb-1">
+                        <div className="relative group">
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
                                 Login As
                             </label>
-                            <select
-                                value={role}
-                                onChange={(e) => setRole(e.target.value)}
-                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[#01898d]"
-                            >
-                                <option value="student">Student</option>
-                                <option value="faculty">Faculty</option>
-                                <option value="admin">Admin</option>
-                            </select>
+                            <div className="relative">
+                                <select
+                                    value={role}
+                                    onChange={(e) => setRole(e.target.value)}
+                                    className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-700 font-medium outline-none focus:bg-white focus:border-(--color-primary) focus:ring-4 focus:ring-(--color-primary)/5 transition-all cursor-pointer pr-10"
+                                >
+                                    <option value="student">Student</option>
+                                    <option value="faculty">Faculty</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-(--color-primary) transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                        <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z" />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
 
                         <div>

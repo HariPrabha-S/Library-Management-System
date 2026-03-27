@@ -12,31 +12,31 @@ import StudentAttendance from "./pages/admin/StudentAttendance";
 import ManageFines from "./pages/admin/ManageFines";
 
 // Student
-import StudentLayout from "./pages/Student/components/Layout";
-import StudentDashboard from "./pages/Student/Dashboard";
-import StudentLibrarySelection from "./pages/Student/LibrarySelection";
-import StudentBookSearch from "./pages/Student/BookSearch";
-import StudentDeptLibrary from "./pages/Student/DepartmentLibrary";
-import StudentIssuedBooks from "./pages/Student/IssuedBooks";
-import StudentDigitalResources from "./pages/Student/DigitalResources";
-import StudentFineManagement from "./pages/Student/FineManagement";
-import StudentRequests from "./pages/Student/Requests";
-import StudentHistory from "./pages/Student/History";
-import StudentProfile from "./pages/Student/Profile";
+import StudentLayout from "./pages/student/components/Layout";
+import StudentDashboard from "./pages/student/Dashboard";
+import StudentLibrarySelection from "./pages/student/LibrarySelection";
+import StudentBookSearch from "./pages/student/BookSearch";
+import StudentDeptLibrary from "./pages/student/DepartmentLibrary";
+import StudentIssuedBooks from "./pages/student/IssuedBooks";
+import StudentDigitalResources from "./pages/student/DigitalResources";
+import StudentFineManagement from "./pages/student/FineManagement";
+import StudentRequests from "./pages/student/Requests";
+import StudentHistory from "./pages/student/History";
+import StudentProfile from "./pages/student/Profile";
 
 // Faculty
-import FacultyLayout from "./pages/Faculty/components/Layout";
-import FacultyDashboard from "./pages/Faculty/Dashboard";
-import FacultyLibrarySelection from "./pages/Faculty/LibrarySelection";
-import FacultyBookSearch from "./pages/Faculty/BookSearch";
-import FacultyDeptLibrary from "./pages/Faculty/DepartmentLibrary";
-import FacultyIssuedBooks from "./pages/Faculty/IssuedBooks";
-import FacultyDigitalResources from "./pages/Faculty/DigitalResources";
-import FacultyFineManagement from "./pages/Faculty/FineManagement";
-import FacultyRequests from "./pages/Faculty/Requests";
-import FacultyHistory from "./pages/Faculty/History";
-import FacultyProfile from "./pages/Faculty/Profile";
-import FacultyJournals from "./pages/Faculty/FacultyJournals";
+import FacultyLayout from "./pages/faculty/components/Layout";
+import FacultyDashboard from "./pages/faculty/Dashboard";
+import FacultyLibrarySelection from "./pages/faculty/LibrarySelection";
+import FacultyBookSearch from "./pages/faculty/BookSearch";
+import FacultyDeptLibrary from "./pages/faculty/DepartmentLibrary";
+import FacultyIssuedBooks from "./pages/faculty/IssuedBooks";
+import FacultyDigitalResources from "./pages/faculty/DigitalResources";
+import FacultyFineManagement from "./pages/faculty/FineManagement";
+import FacultyRequests from "./pages/faculty/Requests";
+import FacultyHistory from "./pages/faculty/History";
+import FacultyProfile from "./pages/faculty/Profile";
+import FacultyJournals from "./pages/faculty/FacultyJournals";
 
 function App() {
     return (

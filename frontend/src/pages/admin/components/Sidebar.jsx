@@ -18,12 +18,12 @@ const navItems = [
     { name: 'Manage Books', path: '/admin/books', icon: BookOpen },
     { name: 'Manage Students', path: '/admin/students', icon: Users },
     { name: 'Manage Faculties', path: '/admin/faculties', icon: GraduationCap },
-    { name: 'Issues', path: '/admin/issues', icon: BookMarked },
+    { name: 'Manage Records', path: '/admin/issues', icon: BookMarked },
     { name: 'Attendance', path: '/admin/attendance', icon: UserCheck },
     { name: 'Manage Fines', path: '/admin/fines', icon: AlertCircle },
 ];
 
-const AdminSidebar = ({ onLogout, collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
+const AdminSidebar = ({ onLogout, collapsed, setCollapsed, mobileOpen = false, setMobileOpen = () => { } }) => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -37,24 +37,7 @@ const AdminSidebar = ({ onLogout, collapsed, setCollapsed, mobileOpen, setMobile
         <>
             {/* Sidebar panel */}
             <div
-                className={`no-scrollbar sidebar ${mobileOpen ? 'mobile-open' : ''}`}
-                style={{
-                    width: 248,
-                    minWidth: 248,
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    height: '100dvh',
-                    background: 'linear-gradient(180deg, #790c0c 0%, #5a0909 100%)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    zIndex: 200,
-                    overflowY: 'auto',
-                    overflowX: 'hidden',
-                    transform: mobileOpen ? 'translateX(0)' : (collapsed ? 'translateX(-100%)' : 'translateX(0)'),
-                    transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
-                    boxShadow: '4px 0 24px rgba(121,12,12,0.2)',
-                }}
+                className={`no-scrollbar sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}
             >
                 {/* Brand */}
                 <div className="sidebar-brand">
@@ -75,7 +58,7 @@ const AdminSidebar = ({ onLogout, collapsed, setCollapsed, mobileOpen, setMobile
                             to={path}
                             className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
                             onClick={() => {
-                                if (window.innerWidth < 1024) setMobileOpen(false);
+                                if (window.innerWidth <= 1024) setMobileOpen(false);
                             }}
                         >
                             <span className="nav-icon"><Icon size={18} /></span>
@@ -97,7 +80,10 @@ const AdminSidebar = ({ onLogout, collapsed, setCollapsed, mobileOpen, setMobile
 
                     {/* Collapse button */}
                     <button
-                        onClick={() => setCollapsed(true)}
+                        onClick={() => {
+                            if (window.innerWidth <= 1024) setMobileOpen(false);
+                            else setCollapsed(true);
+                        }}
                         style={{
                             width: '100%', display: 'flex', alignItems: 'center',
                             justifyContent: 'center', gap: 10, marginTop: 8,
@@ -120,30 +106,17 @@ const AdminSidebar = ({ onLogout, collapsed, setCollapsed, mobileOpen, setMobile
                 </div>
             </div>
 
-            {/* Floating re-open tab */}
-            {collapsed && (
-                <button
-                    onClick={() => setCollapsed(false)}
-                    aria-label="Open sidebar"
-                    style={{
-                        position: 'fixed', top: '50%', left: 0,
-                        transform: 'translateY(-50%)',
-                        zIndex: 201,
-                        background: 'linear-gradient(180deg, #790c0c 0%, #5a0909 100%)',
-                        color: 'white', border: 'none',
-                        borderRadius: '0 8px 8px 0',
-                        width: 24, height: 56,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer',
-                        boxShadow: '4px 0 12px rgba(121,12,12,0.3)',
-                        transition: 'width 0.2s ease',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.width = '32px'; }}
-                    onMouseLeave={e => { e.currentTarget.style.width = '24px'; }}
-                >
-                    <ChevronRight size={16} />
-                </button>
-            )}
+            {/* Floating arrow - Appearance managed by CSS using the .floating-reopen-btn class */}
+            <button
+                className="floating-reopen-btn"
+                onClick={() => {
+                    if (window.innerWidth <= 1024) setMobileOpen(true);
+                    else setCollapsed(false);
+                }}
+                aria-label="Open sidebar"
+            >
+                <ChevronRight size={16} />
+            </button>
         </>
     );
 };

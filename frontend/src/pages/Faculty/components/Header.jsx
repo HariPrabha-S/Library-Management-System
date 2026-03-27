@@ -22,7 +22,7 @@ const Header = ({ title, subtitle, user, onMenuClick }) => {
 
       {/* Hamburger – mobile only */}
       <button
-        className="mobile-menu-btn header-icon-btn"
+        className="mobile-menu-btn header-icon-btn lg:hidden"
         onClick={onMenuClick}
         aria-label="Open menu"
       >

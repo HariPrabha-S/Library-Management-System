@@ -41,6 +41,15 @@ export default function ManageIssues() {
         );
     };
 
+    const revertReturn = (id) => {
+        if (!window.confirm("Revert this return?")) return;
+        setIssues(
+            issues.map((issue) =>
+                issue._id === id ? { ...issue, status: "Issued" } : issue
+            )
+        );
+    };
+
     const addIssue = (issue) => {
         setIssues([
             ...issues,
@@ -91,6 +100,7 @@ export default function ManageIssues() {
             <IssueTable
                 issues={filteredIssues}
                 markReturned={markReturned}
+                revertReturn={revertReturn}
             />
 
             {/* ISSUE MODAL */}
