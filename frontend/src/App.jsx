@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/auth/login";
+import ScrollToTop from "./pages/auth/ScrollToTop";
 
 // Admin
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -40,7 +41,9 @@ import FacultyJournals from "./pages/Faculty/FacultyJournals";
 
 function App() {
     return (
-        <Routes>
+        <>
+            <ScrollToTop />
+            <Routes>
 
             {/* Auth */}
             <Route path="/" element={<Login />} />
@@ -63,6 +66,7 @@ function App() {
                 <Route path="selection" element={<StudentLibrarySelection />} />
                 <Route path="search" element={<StudentBookSearch />} />
                 <Route path="dept-library" element={<StudentDeptLibrary />} />
+                <Route path="department" element={<StudentDeptLibrary />} />
                 <Route path="issued" element={<StudentIssuedBooks />} />
                 <Route path="resources" element={<StudentDigitalResources />} />
                 <Route path="fines" element={<StudentFineManagement />} />
@@ -78,6 +82,7 @@ function App() {
                 <Route path="selection" element={<FacultyLibrarySelection />} />
                 <Route path="search" element={<FacultyBookSearch />} />
                 <Route path="dept-library" element={<FacultyDeptLibrary />} />
+                <Route path="department" element={<FacultyDeptLibrary />} />
                 <Route path="issued" element={<FacultyIssuedBooks />} />
                 <Route path="resources" element={<FacultyDigitalResources />} />
                 <Route path="fines" element={<FacultyFineManagement />} />
@@ -88,6 +93,7 @@ function App() {
             </Route>
 
         </Routes>
+        </>
     );
 }
 

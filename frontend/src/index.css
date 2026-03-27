@@ -60,6 +60,219 @@ button:active {
 }
 
 /* ==========================================
+   ANIMATIONS - DIVERSE ENTRANCE TRANSITIONS
+   ========================================== */
+
+/* --- Slide Animations --- */
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-60px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromLeftSlow {
+    from {
+        opacity: 0;
+        transform: translateX(-100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(60px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromTop {
+    from {
+        opacity: 0;
+        transform: translateY(-60px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- Fade Animations --- */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateX(-100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- Scale Animations --- */
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes scaleInCenter {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* --- Rotate Animations --- */
+@keyframes rotateIn {
+    from {
+        opacity: 0;
+        transform: rotate(-10deg) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: rotate(0) scale(1);
+    }
+}
+
+/* --- Bounce Animations --- */
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* --- Pulse Animations --- */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Animation Classes */
+.slide-in-animation {
+    animation: slideInFromLeft 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.slide-in-right {
+    animation: slideInFromRight 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.slide-in-top {
+    animation: slideInFromTop 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.fade-in-animation {
+    animation: fadeInUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.fade-in-down {
+    animation: fadeInDown 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+}
+
+.scale-in {
+    animation: scaleIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.scale-in-center {
+    animation: scaleInCenter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.rotate-in {
+    animation: rotateIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.bounce-in {
+    animation: bounceIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pulse-animation {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Apply animation to sidebar */
+.sidebar {
+    animation: slideInFromLeftSlow 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Apply animation to page body content */
+.page-body {
+    animation: slideInFromTop 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Stagger animation for child elements */
+.page-body > * {
+    animation: fadeInUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
+}
+
+.page-body > *:nth-child(1) { animation-delay: 0.1s; }
+.page-body > *:nth-child(2) { animation-delay: 0.175s; }
+.page-body > *:nth-child(3) { animation-delay: 0.25s; }
+.page-body > *:nth-child(4) { animation-delay: 0.325s; }
+.page-body > *:nth-child(5) { animation-delay: 0.4s; }
+
+/* Override for authenticated pages - animate from top to bottom */
+.main-content .page-body > * {
+    animation: fadeInDown 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
+}
+
+/* ==========================================
    PAGE HEADING STYLES
    ========================================== */
 
@@ -115,7 +328,7 @@ button:active {
         @apply fixed top-0 left-0 flex flex-col z-[200] overflow-hidden;
         height: 100dvh;
         background: var(--bg-sidebar);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         box-shadow: 4px 0 24px rgba(121, 12, 12, 0.2);
     }
 
@@ -1010,6 +1223,7 @@ button:active {
 
     .sidebar {
         transform: translateX(-100%);
+        animation: none !important;
     }
 
     .sidebar.mobile-open {
