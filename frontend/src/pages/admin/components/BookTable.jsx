@@ -7,7 +7,8 @@ export default function BookTable({ books, selectedBooks, filters, setFilters, l
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.key === 'Escape' && viewedBook) {
+            if (!viewedBook) return;
+            if (e.key === 'Escape' || e.key === 'Enter') {
                 setViewedBook(null);
             }
         };
@@ -48,13 +49,13 @@ export default function BookTable({ books, selectedBooks, filters, setFilters, l
 
             {/* Table Controls (Limit) - Hide in printable mode */}
             {!isPrintable && (
-                <div className="flex justify-between items-center mb-4 text-[var(--font-body)]">
+                <div className="flex justify-between items-center mb-4 text-(--font-body)">
                     <div className="text-sm text-gray-500">
                         Showing {books.length} records
                     </div>
                     <div className="flex items-center gap-3">
                         <span className="text-sm text-gray-600 font-medium">Show:</span>
-                        <div className="flex items-center border rounded-lg overflow-hidden bg-gray-50 focus-within:ring-1 focus-within:ring-[var(--color-primary)] transition-all">
+                        <div className="flex items-center border rounded-lg overflow-hidden bg-gray-50 focus-within:ring-1 focus-within:ring-(--color-primary) transition-all">
                             <select
                                 value={[10, 100, 1000].includes(limit) ? limit : "custom"}
                                 onChange={(e) => {
@@ -75,7 +76,7 @@ export default function BookTable({ books, selectedBooks, filters, setFilters, l
                                 max="5000"
                                 value={limit}
                                 onChange={(e) => setLimit(Math.max(1, Math.min(5000, Number(e.target.value))))}
-                                className="w-16 px-2 py-1.5 text-sm outline-none border-l bg-white text-center font-semibold text-[var(--color-primary)]"
+                                className="w-16 px-2 py-1.5 text-sm outline-none border-l bg-white text-center font-semibold text-(--color-primary)"
                                 placeholder="Qty"
                             />
                         </div>
@@ -121,7 +122,7 @@ export default function BookTable({ books, selectedBooks, filters, setFilters, l
                                         <td key={col} className={`${isFullDetails ? "py-2.5 px-2" : "py-4 px-3"} ${isPrintable ? "border border-gray-300 px-3" : ""}`}>
                                             {col === "title" ? (
                                                 <span
-                                                    className={`font-semibold ${isPrintable ? "text-black" : "text-gray-900 group-hover:text-[var(--color-primary)] hover:underline transition-colors cursor-pointer"} ${isFullDetails ? "line-clamp-2" : ""}`}
+                                                    className={`font-semibold ${isPrintable ? "text-black" : "text-gray-900 group-hover:text-(--color-primary) hover:underline transition-colors cursor-pointer"} ${isFullDetails ? "line-clamp-2" : ""}`}
                                                     onClick={(e) => {
                                                         if (!isPrintable) {
                                                             e.stopPropagation();
@@ -153,7 +154,7 @@ export default function BookTable({ books, selectedBooks, filters, setFilters, l
                                                     type="checkbox"
                                                     checked={selectedBooks.includes(book._id)}
                                                     onChange={() => { }} // Controlled by row click
-                                                    className={`${isFullDetails ? "w-3 h-3" : "w-4 h-4"} rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)] cursor-pointer`}
+                                                    className={`${isFullDetails ? "w-3 h-3" : "w-4 h-4"} rounded border-gray-300 text-(--color-primary) focus:ring-(--color-primary) cursor-pointer`}
                                                 />
                                                 <button
                                                     onClick={(e) => {
@@ -172,22 +173,20 @@ export default function BookTable({ books, selectedBooks, filters, setFilters, l
                             ))
                         )}
                     </tbody>
-
-                    {reportSummary && (
+                    {isPrintable && reportSummary && (
                         <tfoot>
-                            <tr className="bg-gray-100/80 font-bold border-t-2 border-gray-300">
+                            <tr className="bg-gray-100 font-bold border-t-2 border-gray-300">
                                 {columnsToShow.map((col, idx) => (
-                                    <td key={`footer-${col}`} className={`py-4 px-3 ${isPrintable ? "border border-gray-300 text-black" : "text-gray-900"}`}>
+                                    <td key={`footer-${col}`} className="py-3 px-3 border border-gray-300 text-black">
                                         {col === "title" && "TOTAL RECORDS:"}
                                         {col === "accessionNo" && "SUMMARY"}
-                                        {col === "department" && "TOTALS"}
+                                        {col === "department" && "DEPARTMENT TOTALS"}
                                         {(col === "price" || col === "totalPrice") && `₹${reportSummary.totalPrice.toLocaleString()}`}
                                     </td>
                                 ))}
-                                <td className={`py-4 px-3 text-center ${isPrintable ? "border border-gray-300 text-black" : "text-gray-900"}`}>
+                                <td className="py-3 px-3 border border-gray-300 text-center text-black">
                                     {reportSummary.totalQty}
                                 </td>
-                                {!isPrintable && <td className="bg-gray-100/80 border-l"></td>}
                             </tr>
                         </tfoot>
                     )}
@@ -240,7 +239,7 @@ export default function BookTable({ books, selectedBooks, filters, setFilters, l
                                     )}
                                 </div>
                                 <button
-                                    className="px-6 py-2 bg-[var(--color-primary)] hover:bg-[#610a0a] text-white rounded-lg transition-colors font-medium text-sm shadow-md"
+                                    className="px-6 py-2 bg-(--color-primary) hover:bg-[#610a0a] text-white rounded-lg transition-colors font-medium text-sm shadow-md"
                                     onClick={() => setViewedBook(null)}
                                 >
                                     Close Details

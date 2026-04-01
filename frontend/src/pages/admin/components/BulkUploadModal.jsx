@@ -116,10 +116,15 @@ export default function BulkUploadModal({ type, onUpload, onClose }) {
     const label = type.charAt(0).toUpperCase() + type.slice(1);
 
     useEffect(() => {
-        const onEsc = (e) => { if (e.key === "Escape") onClose(); };
-        window.addEventListener("keydown", onEsc);
-        return () => window.removeEventListener("keydown", onEsc);
-    }, [onClose]);
+        const handleKeys = (e) => {
+            if (e.key === "Escape") onClose();
+            if (e.key === "Enter" && preview && !success) {
+                handleConfirm();
+            }
+        };
+        window.addEventListener("keydown", handleKeys);
+        return () => window.removeEventListener("keydown", handleKeys);
+    }, [onClose, preview, success]);
 
     /* Map raw rows (2-D array) to objects using label → key mapping */
     function processRawRows(rawRows) {
@@ -218,7 +223,7 @@ export default function BulkUploadModal({ type, onUpload, onClose }) {
     }
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[400] p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-400 p-4">
             <div
                 className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative"
                 style={{ animation: "fadeInScale 0.25s ease" }}
@@ -228,7 +233,7 @@ export default function BulkUploadModal({ type, onUpload, onClose }) {
                 {/* ── Header ── */}
                 <div className="flex items-center justify-between px-8 pt-7 pb-4 border-b border-gray-100">
                     <div>
-                        <h2 className="font-heading text-2xl font-bold text-[var(--color-primary)]">
+                        <h2 className="font-heading text-2xl font-bold text-(--color-primary)">
                             Bulk Upload {label}s
                         </h2>
                         <p className="text-sm text-gray-500 mt-0.5">
@@ -262,7 +267,7 @@ export default function BulkUploadModal({ type, onUpload, onClose }) {
                                     key={key}
                                     className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 shadow-sm"
                                 >
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] inline-block" />
+                                    <span className="w-1.5 h-1.5 rounded-full bg-(--color-primary) inline-block" />
                                     {lbl}
                                 </span>
                             ))}
@@ -338,7 +343,7 @@ export default function BulkUploadModal({ type, onUpload, onClose }) {
                         <div>
                             <p className="text-sm font-semibold text-gray-700 mb-2">
                                 Preview —{" "}
-                                <span className="text-[var(--color-primary)]">
+                                <span className="text-(--color-primary)">
                                     {preview.rows.length} record(s)
                                 </span>{" "}
                                 detected
@@ -413,7 +418,7 @@ export default function BulkUploadModal({ type, onUpload, onClose }) {
                             <button
                                 onClick={handleConfirm}
                                 disabled={!preview}
-                                className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
+                                className="px-6 py-2 bg-(--color-primary) text-white rounded-xl text-sm font-semibold hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
                             >
                                 <FiUploadCloud />
                                 {preview

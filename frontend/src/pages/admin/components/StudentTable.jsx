@@ -1,9 +1,20 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { FiTrash } from "react-icons/fi";
 import { User, Mail, GraduationCap, XCircle, BadgeCheck, Phone, Calendar, BookOpen } from "lucide-react";
 
 export default function StudentTable({ students, selectedStudents, onSelect, onDelete, selectedColumns, isPrintable }) {
   const [viewedStudent, setViewedStudent] = useState(null);
+
+  useEffect(() => {
+    const handleKeys = (e) => {
+      if (!viewedStudent) return;
+      if (e.key === "Escape" || e.key === "Enter") {
+        setViewedStudent(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeys);
+    return () => window.removeEventListener("keydown", handleKeys);
+  }, [viewedStudent]);
 
   const isColVisible = (colName) => {
     if (!selectedColumns) return true;

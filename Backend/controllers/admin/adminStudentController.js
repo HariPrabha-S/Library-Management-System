@@ -64,12 +64,12 @@ exports.editStudent = async (req, res) => {
     try {
         const { id } = req.params;
         const updates = { ...req.body };
-        
+
         if (updates.password) {
             updates.password = await bcrypt.hash(updates.password, 10);
         }
 
-        const [ updatedRows ] = await Student.update(updates, { where: { id } });
+        const [updatedRows] = await Student.update(updates, { where: { id } });
 
         if (updatedRows === 0) {
             return sendError(res, 'Student not found or no changes made', 404);
@@ -88,7 +88,7 @@ exports.deleteStudent = async (req, res) => {
     try {
         const { id } = req.params;
         const deleted = await Student.destroy({ where: { id } });
-        
+
         if (!deleted) return sendError(res, 'Student not found', 404);
         return sendSuccess(res, null, 'Student deleted successfully');
     } catch (error) {
@@ -116,7 +116,7 @@ exports.bulkUpload = async (req, res) => {
         if (!students || !students.length) return sendError(res, 'No student data provided', 400);
 
         const hashedStudents = await Promise.all(students.map(async (s) => {
-            const pwd = s.password || s.rollNo; 
+            const pwd = s.password || s.rollNo;
             const hash = await bcrypt.hash(pwd, 10);
             return {
                 ...s,
@@ -125,7 +125,7 @@ exports.bulkUpload = async (req, res) => {
         }));
 
         const created = await Student.bulkCreate(hashedStudents, { ignoreDuplicates: true });
-        
+
         return sendSuccess(res, created, 'Bulked upload successful');
     } catch (error) {
         return sendError(res, 'Error with bulk upload', 500);

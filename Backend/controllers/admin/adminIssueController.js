@@ -4,118 +4,195 @@ const { Op } = require('sequelize');
 
 exports.getIssues = async (req, res) => {
     try {
-        const { search, department, status } = req.query;
+        const { search, department, status, fromDate, toDate } = req.query;
 
         let whereClause = {};
         if (status && status !== 'All') {
             whereClause.status = status;
         }
 
-        // Ideally, we'd do a complex raw query to filter by student/faculty name
-        // For simplicity now, we'll fetch all matching issues and return
+        if (fromDate && toDate) {
+            whereClause.issueDate = {
+                [Op.between]: [fromDate, toDate]
+            };
+        } else if (fromDate) {
+            whereClause.issueDate = { [Op.gte]: fromDate };
+        } else if (toDate) {
+            whereClause.issueDate = { [Op.lte]: toDate };
+        }
+
         const issues = await Issue.findAll({
-             where: whereClause,
-             include: [{ model: Book, attributes: ['title', 'accessionNo', 'department'] }],
-             order: [['issueDate', 'DESC']]
+            where: whereClause,
+            include: [
+                { model: Book, attributes: ['title', 'accessionNo', 'department'] },
+                { model: Student, attributes: ['name', 'department', 'rollNo'] },
+                { model: Faculty, attributes: ['name', 'department', 'employeeId'] }
+            ],
+            order: [['issueDate', 'DESC']]
         });
 
-        // Resolve borrower names (since borrower Type can be Student or Faculty)
-        const mappedIssues = await Promise.all(issues.map(async (issue) => {
+        const mappedIssues = issues.map(issue => {
             let borrowerName = 'Unknown';
+            let rollNo = '';
             let dept = issue.Book ? issue.Book.department : '';
-            if (issue.borrowerType === 'Student') {
-                const s = await Student.findByPk(issue.borrowerId, { attributes: ['name', 'department']});
-                if (s) { borrowerName = s.name; dept = s.department; }
-            } else {
-                const f = await Faculty.findByPk(issue.borrowerId, { attributes: ['name', 'department']});
-                if (f) { borrowerName = f.name; dept = f.department; }
+
+            if (issue.Student) {
+                borrowerName = issue.Student.name;
+                rollNo = issue.Student.rollNo;
+                dept = issue.Student.department;
+            } else if (issue.Faculty) {
+                borrowerName = issue.Faculty.name;
+                rollNo = issue.Faculty.employeeId;
+                dept = issue.Faculty.department;
             }
+
+            const isOverdue = issue.status === 'Issued' && new Date() > new Date(issue.returnDate);
+
             return {
-                _id: issue.id, // For frontend compatibility
                 id: issue.id,
-                student: borrowerName, // Maps to 'student' in frontend
-                borrowerType: issue.borrowerType,
+                student: borrowerName,
+                rollNo: rollNo,
                 book: issue.Book ? issue.Book.title : 'Unknown Book',
                 department: dept,
                 issueDate: issue.issueDate,
-                returnDate: issue.returnDate,
-                dueDate: issue.dueDate,
-                status: issue.status
+                returnDate: issue.actualReturnDate,
+                dueDate: issue.returnDate,
+                status: isOverdue ? 'Overdue' : issue.status
             };
-        }));
+        });
 
-        // Filter by search string or department
-        let finalIssues = mappedIssues;
+        // Filter search logic
+        let finalOutput = mappedIssues;
         if (search) {
-             const sLower = search.toLowerCase();
-             finalIssues = finalIssues.filter(i => 
-                 i.student.toLowerCase().includes(sLower) || 
-                 i.book.toLowerCase().includes(sLower)
-             );
-        }
-        if (department && department !== 'all') {
-             finalIssues = finalIssues.filter(i => i.department === department);
+            const sLower = search.toLowerCase();
+            finalOutput = finalOutput.filter(i =>
+                i.student.toLowerCase().includes(sLower) ||
+                i.book.toLowerCase().includes(sLower) ||
+                i.rollNo.toLowerCase().includes(sLower)
+            );
         }
 
-        return sendSuccess(res, finalIssues, 'Issues fetched successfully');
+        return sendSuccess(res, finalOutput, 'Issues fetched successfully');
     } catch (error) {
         return sendError(res, 'Error fetching issues', 500);
     }
 };
 
 exports.issueBook = async (req, res) => {
-    // Requires a transaction since we are issuing a book and decrementing stock
-    const transaction = await Issue.sequelize.transaction();
+    const transaction = await sequelize.transaction();
     try {
-        const { borrowerId, borrowerType, bookId, dueDate } = req.body;
+        let { borrowerId, borrowerType, bookId, student, book, department, issueDate, returnDate } = req.body;
 
-        const book = await Book.findByPk(bookId, { transaction });
-        if (!book) {
-            await transaction.rollback();
-            return sendError(res, 'Book not found', 404);
+        // 1. Lookup Student/Faculty if only name/rollNo provided
+        if (!borrowerId && student) {
+            // Try lookup by rollNo or name
+            const foundStudent = await Student.findOne({
+                where: {
+                    [Op.or]: [
+                        { rollNo: student },
+                        { name: student }
+                    ]
+                },
+                transaction
+            });
+
+            if (foundStudent) {
+                borrowerId = foundStudent.id;
+                borrowerType = 'Student';
+            } else {
+                // Try Faculty
+                const foundFaculty = await Faculty.findOne({
+                    where: {
+                        [Op.or]: [
+                            { employeeId: student },
+                            { name: student }
+                        ]
+                    },
+                    transaction
+                });
+                if (foundFaculty) {
+                    borrowerId = foundFaculty.id;
+                    borrowerType = 'Faculty';
+                }
+            }
         }
 
-        if (book.availableCopies <= 0) {
+        if (!borrowerId) {
+            await transaction.rollback();
+            return sendError(res, 'Borrower (Student/Faculty) not found. Please provide a valid Roll No or Name.', 404);
+        }
+
+        // 2. Lookup Book if only title/accessionNo provided
+        if (!bookId && book) {
+            const foundBook = await Book.findOne({
+                where: {
+                    [Op.or]: [
+                        { accessionNo: book },
+                        { title: book }
+                    ]
+                },
+                transaction
+            });
+
+            if (foundBook) {
+                bookId = foundBook.id;
+            }
+        }
+
+        if (!bookId) {
+            await transaction.rollback();
+            return sendError(res, 'Book not found. Please provide a valid Accession No or Title.', 404);
+        }
+
+        const targetBook = await Book.findByPk(bookId, { transaction });
+        if (!targetBook) {
+            await transaction.rollback();
+            return sendError(res, 'Book record missing.', 404);
+        }
+
+        if (targetBook.availableCopies <= 0) {
             await transaction.rollback();
             return sendError(res, 'No copies available to issue', 400);
         }
 
-        const issue = await Issue.create({
-            borrowerId,
-            borrowerType,
+        const issueData = {
             bookId,
-            dueDate: dueDate || new Date(new Date().setDate(new Date().getDate() + 14)), // Default 14 days
+            issueDate: issueDate || new Date(),
+            returnDate: returnDate || new Date(new Date().setDate(new Date().getDate() + 14)),
             status: 'Issued'
-        }, { transaction });
+        };
 
-        book.availableCopies -= 1;
-        await book.save({ transaction });
+        if (borrowerType === 'Student') issueData.studentId = borrowerId;
+        else issueData.facultyId = borrowerId;
 
-        // Update borrower stats
-        if (borrowerType === 'Student') await Student.increment('issuedBooks', { by: 1, where: { id: borrowerId }, transaction });
-        else await Faculty.increment('issuedBooks', { by: 1, where: { id: borrowerId }, transaction });
+        const issue = await Issue.create(issueData, { transaction });
+
+        // Update stock
+        targetBook.availableCopies -= 1;
+        targetBook.timesIssued += 1;
+        await targetBook.save({ transaction });
 
         await transaction.commit();
         return sendSuccess(res, issue, 'Book issued successfully', 201);
     } catch (error) {
-        await transaction.rollback();
+        if (transaction) await transaction.rollback();
+        console.error('issueBook error:', error);
         return sendError(res, 'Error issuing book', 500);
     }
 };
 
 exports.returnBook = async (req, res) => {
-    const transaction = await Issue.sequelize.transaction();
+    const transaction = await sequelize.transaction();
     try {
         const { id } = req.params;
         const issue = await Issue.findByPk(id, { transaction });
-        
         if (!issue || issue.status === 'Returned') {
             await transaction.rollback();
-            return sendError(res, 'Issue not found or already returned', 400);
+            return sendError(res, 'Issue record not found or already returned', 400);
         }
 
         issue.status = 'Returned';
-        issue.returnDate = new Date();
+        issue.actualReturnDate = new Date();
         await issue.save({ transaction });
 
         const book = await Book.findByPk(issue.bookId, { transaction });
@@ -124,43 +201,27 @@ exports.returnBook = async (req, res) => {
             await book.save({ transaction });
         }
 
-        // Calculate fine if overdue
-        const dueDate = new Date(issue.dueDate);
+        // Overdue logic + Fine
+        const dueDate = new Date(issue.returnDate);
         const returnDate = new Date();
         if (returnDate > dueDate) {
-            const diffTime = Math.abs(returnDate - dueDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const diffDays = Math.ceil(Math.abs(returnDate - dueDate) / (1000 * 60 * 60 * 24));
             const fineRate = process.env.FINE_PER_DAY ? parseFloat(process.env.FINE_PER_DAY) : 10;
-            const fineAmount = diffDays * fineRate;
+            const amount = diffDays * fineRate;
 
             await Fine.create({
-                borrowerId: issue.borrowerId,
-                borrowerType: issue.borrowerType,
+                userType: issue.studentId ? 'Student' : 'Faculty',
+                studentId: issue.studentId,
+                facultyId: issue.facultyId,
                 issueId: issue.id,
-                amount: fineAmount,
+                amount,
                 reason: `Late Return - ${diffDays} days`,
                 status: 'Unpaid'
             }, { transaction });
-
-            // Update borrower fine total
-            if (issue.borrowerType === 'Student') {
-                await Student.increment('fine', { by: fineAmount, where: { id: issue.borrowerId }, transaction });
-            } else {
-                await Faculty.increment('fine', { by: fineAmount, where: { id: issue.borrowerId }, transaction });
-            }
-        }
-
-        // Update borrower stats
-        if (issue.borrowerType === 'Student') {
-             await Student.increment('returnedBooks', { by: 1, where: { id: issue.borrowerId }, transaction });
-             await Student.decrement('issuedBooks', { by: 1, where: { id: issue.borrowerId }, transaction });
-        } else {
-             await Faculty.increment('returnedBooks', { by: 1, where: { id: issue.borrowerId }, transaction });
-             await Faculty.decrement('issuedBooks', { by: 1, where: { id: issue.borrowerId }, transaction });
         }
 
         await transaction.commit();
-        return sendSuccess(res, issue, 'Book marked as returned successfully');
+        return sendSuccess(res, issue, 'Book returned successfully');
     } catch (error) {
         await transaction.rollback();
         return sendError(res, 'Error returning book', 500);
@@ -168,20 +229,18 @@ exports.returnBook = async (req, res) => {
 };
 
 exports.revertReturn = async (req, res) => {
-    const transaction = await Issue.sequelize.transaction();
+    const transaction = await sequelize.transaction();
     try {
         const { id } = req.params;
         const issue = await Issue.findByPk(id, { transaction });
-        
         if (!issue || issue.status !== 'Returned') {
             await transaction.rollback();
-            return sendError(res, 'Issue not found or not returned', 400);
+            return sendError(res, 'Issue record not found or not returned', 400);
         }
 
-        // Determine if Overdue based on dueDate
-        const isOverdue = new Date() > new Date(issue.dueDate);
+        const isOverdue = new Date() > new Date(issue.returnDate);
         issue.status = isOverdue ? 'Overdue' : 'Issued';
-        issue.returnDate = null;
+        issue.actualReturnDate = null;
         await issue.save({ transaction });
 
         const book = await Book.findByPk(issue.bookId, { transaction });
@@ -190,25 +249,8 @@ exports.revertReturn = async (req, res) => {
             await book.save({ transaction });
         }
 
-        // Delete fine if exists for this issue 
-        const fine = await Fine.findOne({ where: { issueId: issue.id }, transaction });
-        if (fine) {
-            if (issue.borrowerType === 'Student') {
-                await Student.decrement('fine', { by: fine.amount, where: { id: issue.borrowerId }, transaction });
-            } else {
-                await Faculty.decrement('fine', { by: fine.amount, where: { id: issue.borrowerId }, transaction });
-            }
-            await fine.destroy({ transaction });
-        }
-
-        // Update borrower stats
-        if (issue.borrowerType === 'Student') {
-             await Student.decrement('returnedBooks', { by: 1, where: { id: issue.borrowerId }, transaction });
-             await Student.increment('issuedBooks', { by: 1, where: { id: issue.borrowerId }, transaction });
-        } else {
-             await Faculty.decrement('returnedBooks', { by: 1, where: { id: issue.borrowerId }, transaction });
-             await Faculty.increment('issuedBooks', { by: 1, where: { id: issue.borrowerId }, transaction });
-        }
+        // Delete fine if any
+        await Fine.destroy({ where: { issueId: issue.id }, transaction });
 
         await transaction.commit();
         return sendSuccess(res, issue, 'Return reverted successfully');
@@ -216,4 +258,4 @@ exports.revertReturn = async (req, res) => {
         await transaction.rollback();
         return sendError(res, 'Error reverting return', 500);
     }
-}
+};

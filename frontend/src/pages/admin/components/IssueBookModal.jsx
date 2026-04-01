@@ -38,16 +38,21 @@ export default function IssueBookModal({ onClose, onAdd }) {
     };
 
     useEffect(() => {
-        const handleEsc = (e) => {
+        const handleKeys = (e) => {
             if (e.key === "Escape") handleClearAndClose();
+            if (e.key === "Enter") {
+                if (e.target.tagName !== "BUTTON" && e.target.tagName !== "SELECT") {
+                    handleSubmit();
+                }
+            }
         };
-        window.addEventListener("keydown", handleEsc);
-        return () => window.removeEventListener("keydown", handleEsc);
-    }, []);
+        window.addEventListener("keydown", handleKeys);
+        return () => window.removeEventListener("keydown", handleKeys);
+    }, [form]);
 
     return (
 
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[300] backdrop-blur-md animate-in fade-in duration-300 p-4">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-300 backdrop-blur-md animate-in fade-in duration-300 p-4">
 
             <div className="bg-white p-8 rounded-2xl w-full max-w-lg shadow-2xl relative animate-in zoom-in duration-200">
 

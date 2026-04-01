@@ -11,6 +11,7 @@ import ManageFaculties from "./pages/admin/ManageFaculties";
 import ManageIssues from "./pages/admin/ManageIssues";
 import StudentAttendance from "./pages/admin/StudentAttendance";
 import ManageFines from "./pages/admin/ManageFines";
+import ManageRequests from "./pages/admin/ManageRequests";
 
 // Student
 import StudentLayout from "./pages/Student/components/Layout";
@@ -45,54 +46,55 @@ function App() {
             <ScrollToTop />
             <Routes>
 
-            {/* Auth */}
-            <Route path="/" element={<Login />} />
+                {/* Auth */}
+                <Route path="/" element={<Login />} />
 
-            {/* Admin */}
-            <Route path="/admin" element={<AdminLayout />}>
-                <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="books" element={<ManageBooks />} />
-                <Route path="students" element={<ManageStudents />} />
-                <Route path="faculties" element={<ManageFaculties />} />
-                <Route path="issues" element={<ManageIssues />} />
-                <Route path="attendance" element={<StudentAttendance />} />
-                <Route path="fines" element={<ManageFines />} />
-            </Route>
+                {/* Admin */}
+                <Route path="/admin" element={<AdminLayout />}>
+                    <Route path="dashboard" element={<AdminDashboard />} />
+                    <Route path="books" element={<ManageBooks />} />
+                    <Route path="students" element={<ManageStudents />} />
+                    <Route path="faculties" element={<ManageFaculties />} />
+                    <Route path="issues" element={<ManageIssues />} />
+                    <Route path="attendance" element={<StudentAttendance />} />
+                    <Route path="fines" element={<ManageFines />} />
+                    <Route path="requests" element={<ManageRequests />} />
+                </Route>
 
-            {/* Student */}
-            <Route path="/student" element={<StudentLayout />}>
-                <Route index element={<Navigate to="dashboard" replace />} />
-                <Route path="dashboard" element={<StudentDashboard />} />
-                <Route path="selection" element={<StudentLibrarySelection />} />
-                <Route path="search" element={<StudentBookSearch />} />
-                <Route path="dept-library" element={<StudentDeptLibrary />} />
-                <Route path="department" element={<StudentDeptLibrary />} />
-                <Route path="issued" element={<StudentIssuedBooks />} />
-                <Route path="resources" element={<StudentDigitalResources />} />
-                <Route path="fines" element={<StudentFineManagement />} />
-                <Route path="requests" element={<StudentRequests />} />
-                <Route path="history" element={<StudentHistory />} />
-                <Route path="profile" element={<StudentProfile />} />
-            </Route>
+                {/* Student */}
+                <Route path="/student" element={<StudentLayout />}>
+                    <Route index element={<Navigate to="dashboard" replace />} />
+                    <Route path="dashboard" element={<StudentDashboard />} />
+                    <Route path="selection" element={<StudentLibrarySelection />} />
+                    <Route path="search" element={<StudentBookSearch />} />
+                    <Route path="dept-library" element={<StudentDeptLibrary />} />
+                    <Route path="department" element={<StudentDeptLibrary />} />
+                    <Route path="issued" element={<StudentIssuedBooks />} />
+                    <Route path="resources" element={<StudentDigitalResources />} />
+                    <Route path="fines" element={<StudentFineManagement />} />
+                    <Route path="requests" element={<StudentRequests />} />
+                    <Route path="history" element={<StudentHistory />} />
+                    <Route path="profile" element={<StudentProfile />} />
+                </Route>
 
-            {/* Faculty */}
-            <Route path="/faculty" element={<FacultyLayout />}>
-                <Route index element={<Navigate to="dashboard" replace />} />
-                <Route path="dashboard" element={<FacultyDashboard />} />
-                <Route path="selection" element={<FacultyLibrarySelection />} />
-                <Route path="search" element={<FacultyBookSearch />} />
-                <Route path="dept-library" element={<FacultyDeptLibrary />} />
-                <Route path="department" element={<FacultyDeptLibrary />} />
-                <Route path="issued" element={<FacultyIssuedBooks />} />
-                <Route path="resources" element={<FacultyDigitalResources />} />
-                <Route path="fines" element={<FacultyFineManagement />} />
-                <Route path="requests" element={<FacultyRequests />} />
-                <Route path="history" element={<FacultyHistory />} />
-                <Route path="profile" element={<FacultyProfile />} />
-                <Route path="journals" element={<FacultyJournals />} />
-            </Route>
+                {/* Faculty */}
+                <Route path="/faculty" element={<FacultyLayout />}>
+                    <Route index element={<Navigate to="dashboard" replace />} />
+                    <Route path="dashboard" element={<FacultyDashboard />} />
+                    <Route path="selection" element={<FacultyLibrarySelection />} />
+                    <Route path="search" element={<FacultyBookSearch />} />
+                    <Route path="dept-library" element={<FacultyDeptLibrary />} />
+                    <Route path="department" element={<FacultyDeptLibrary />} />
+                    <Route path="issued" element={<FacultyIssuedBooks />} />
+                    <Route path="resources" element={<FacultyDigitalResources />} />
+                    <Route path="fines" element={<FacultyFineManagement />} />
+                    <Route path="requests" element={<FacultyRequests />} />
+                    <Route path="history" element={<FacultyHistory />} />
+                    <Route path="profile" element={<FacultyProfile />} />
+                    <Route path="journals" element={<FacultyJournals />} />
+                </Route>
 
-        </Routes>
+            </Routes>
         </>
     );
 }

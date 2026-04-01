@@ -38,15 +38,15 @@ exports.addFaculty = async (req, res) => {
     try {
         const facultyData = req.body;
 
-        const existing = await Faculty.findOne({ 
-            where: { 
+        const existing = await Faculty.findOne({
+            where: {
                 [Op.or]: [
                     { facultyId: facultyData.facultyId },
                     { employeeId: facultyData.employeeId }
                 ]
-            } 
+            }
         });
-        
+
         if (existing) {
             return sendError(res, 'Faculty with this ID or Employee ID already exists', 400);
         }
@@ -71,12 +71,12 @@ exports.editFaculty = async (req, res) => {
     try {
         const { id } = req.params;
         const updates = { ...req.body };
-        
+
         if (updates.password) {
             updates.password = await bcrypt.hash(updates.password, 10);
         }
 
-        const [ updatedRows ] = await Faculty.update(updates, { where: { id } });
+        const [updatedRows] = await Faculty.update(updates, { where: { id } });
 
         if (updatedRows === 0) {
             return sendError(res, 'Faculty not found or no changes made', 404);
@@ -95,7 +95,7 @@ exports.deleteFaculty = async (req, res) => {
     try {
         const { id } = req.params;
         const deleted = await Faculty.destroy({ where: { id } });
-        
+
         if (!deleted) return sendError(res, 'Faculty not found', 404);
         return sendSuccess(res, null, 'Faculty deleted successfully');
     } catch (error) {
@@ -123,7 +123,7 @@ exports.bulkUpload = async (req, res) => {
         if (!faculties || !faculties.length) return sendError(res, 'No faculty data provided', 400);
 
         const hashedFaculties = await Promise.all(faculties.map(async (f) => {
-            const pwd = f.password || f.facultyId; 
+            const pwd = f.password || f.facultyId;
             const hash = await bcrypt.hash(pwd, 10);
             return {
                 ...f,
@@ -132,7 +132,7 @@ exports.bulkUpload = async (req, res) => {
         }));
 
         const created = await Faculty.bulkCreate(hashedFaculties, { ignoreDuplicates: true });
-        
+
         return sendSuccess(res, created, 'Bulked upload successful');
     } catch (error) {
         return sendError(res, 'Error with bulk upload', 500);

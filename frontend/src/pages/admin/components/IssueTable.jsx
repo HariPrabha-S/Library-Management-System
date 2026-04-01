@@ -31,7 +31,7 @@ export default function IssueTable({ issues, markReturned, revertReturn }) {
                             ) : (
                                 issues.map((issue) => (
                                     <tr
-                                        key={issue._id}
+                                        key={issue.id}
                                         className="border-b last:border-none hover:bg-gray-50 transition text-sm cursor-pointer leading-tight group"
                                     >
                                         <td className="py-4 px-3">
@@ -49,23 +49,23 @@ export default function IssueTable({ issues, markReturned, revertReturn }) {
 
                                         <td className="py-4 px-3">
                                             {issue.status === "Returned" ? (
-                                                <span className="text-emerald-600 font-semibold">
+                                                <span className="text-emerald-600 font-semibold px-2 py-1 bg-emerald-50 rounded-lg">
                                                     Returned
                                                 </span>
                                             ) : (
-                                                <span className="text-amber-600 font-semibold">
-                                                    Issued
+                                                <span className={`${issue.status === "Overdue" ? "text-red-600 bg-red-50" : "text-amber-600 bg-amber-50"} font-semibold px-2 py-1 rounded-lg`}>
+                                                    {issue.status}
                                                 </span>
                                             )}
                                         </td>
 
                                         <td className="py-4 px-3">
                                             <div className="flex justify-center items-center gap-3">
-                                                {issue.status === "Issued" ? (
+                                                {issue.status !== "Returned" ? (
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            markReturned(issue._id);
+                                                            markReturned(issue.id);
                                                         }}
                                                         className="flex items-center gap-2 text-emerald-600 hover:text-emerald-800 transition font-bold"
                                                     >
@@ -75,7 +75,7 @@ export default function IssueTable({ issues, markReturned, revertReturn }) {
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            revertReturn(issue._id);
+                                                            revertReturn(issue.id);
                                                         }}
                                                         className="flex items-center gap-2 text-amber-600 hover:text-amber-800 transition font-bold"
                                                     >
@@ -107,7 +107,7 @@ export default function IssueTable({ issues, markReturned, revertReturn }) {
 
                         <div style={{ padding: '50px 30px 30px' }}>
                             <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Issue Details</h2>
-                            <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>Ref: #{viewedIssue._id.slice(-6).toUpperCase()}</p>
+                            <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>Ref: #{viewedIssue.id.toString().slice(-6).toUpperCase()}</p>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
                                 <div className="col-span-2">

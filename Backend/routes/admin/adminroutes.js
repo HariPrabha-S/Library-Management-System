@@ -10,6 +10,7 @@ const adminFacultyRoutes = require('./adminFacultyRoutes');
 const adminIssueRoutes = require('./adminIssueRoutes');
 const adminFineRoutes = require('./adminFineRoutes');
 const adminAttendanceRoutes = require('./adminAttendanceRoutes');
+const adminRequestRoutes = require('./adminRequestRoutes');
 
 // Apply authentication middleware to all admin routes
 // We bypass in development if not strictly testing auth
@@ -23,5 +24,6 @@ router.use('/faculties', adminFacultyRoutes);
 router.use('/issues', adminIssueRoutes);
 router.use('/fines', adminFineRoutes);
 router.use('/attendance', adminAttendanceRoutes);
+router.use('/requests', adminRequestRoutes);
 
 module.exports = router;

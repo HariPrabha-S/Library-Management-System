@@ -1,31 +1,77 @@
-import { FiDollarSign, FiSearch, FiCheckCircle, FiAlertCircle, FiRotateCcw } from "react-icons/fi";
-import { User, Mail, GraduationCap, XCircle, BadgeCheck, Phone, Briefcase, BookOpen, AlertOctagon } from "lucide-react";
 import { useState, useEffect } from "react";
+import adminService from "./services/adminService";
+import FineReports from "./components/FineReports";
+import { generateReport } from "./utils/reportGenerator";
+import { FiDollarSign, FiSearch, FiCheckCircle, FiAlertCircle, FiRotateCcw, FiFileText } from "react-icons/fi";
 
 export default function ManageFines() {
     const [fines, setFines] = useState([]);
     const [search, setSearch] = useState("");
     const [viewedFine, setViewedFine] = useState(null);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const fetchFines = async () => {
+        try {
+            setLoading(true);
+            const res = await adminService.getFines();
+            if (res.success) {
+                // Backend already sorts by amount DESC
+                setFines(res.data);
+            }
+        } catch (error) {
+            console.error("Error fetching fines:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const dummyFines = [
-            { id: 1, name: "Arun Kumar", type: "Student", amount: 150, reason: "Late Return - React JS Guide", status: "Unpaid" },
-            { id: 2, name: "Priya Sharma", type: "Student", amount: 50, reason: "Late Return - Mathematics", status: "Unpaid" },
-            { id: 3, name: "Dr. Rajesh Kumar", type: "Faculty", amount: 200, reason: "Lost Book - Physics Vol 1", status: "Unpaid" },
-        ];
-        setFines(dummyFines);
+        fetchFines();
     }, []);
 
-    const handleClearFine = (id) => {
-        setFines(prev => prev.map(f => f.id === id ? { ...f, status: "Paid" } : f));
+    const handleClearFine = async (id) => {
+        if (!window.confirm("Mark this record as settled?")) return;
+        try {
+            setLoading(true);
+            const res = await adminService.clearFine(id);
+            if (res.success) {
+                alert("Fine cleared successfully!");
+                fetchFines();
+            } else {
+                alert(res.message || "Failed to clear fine");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Network error while clearing fine");
+        } finally {
+            setLoading(false);
+        }
     }
 
-    const handleRevertFine = (id) => {
-        if (!window.confirm("Revert this fine to unpaid?")) return;
-        setFines(prev => prev.map(f => f.id === id ? { ...f, status: "Unpaid" } : f));
+    const handleRevertFine = async (id) => {
+        if (!window.confirm("Revert this settlement back to unpaid?")) return;
+        try {
+            setLoading(true);
+            const res = await adminService.revertFine(id);
+            if (res.success) {
+                alert("Settlement reverted successfully!");
+                fetchFines();
+            } else {
+                alert(res.message || "Failed to revert");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Network error while reverting");
+        } finally {
+            setLoading(false);
+        }
     }
 
-    const filteredFines = fines.filter(f => f.name.toLowerCase().includes(search.toLowerCase()));
+    const filteredFines = fines.filter(f =>
+        (f.name || "").toLowerCase().includes(search.toLowerCase()) ||
+        (f.reason || "").toLowerCase().includes(search.toLowerCase())
+    );
 
     return (
         <>
@@ -33,6 +79,12 @@ export default function ManageFines() {
                 <h1 className="font-heading text-3xl font-bold text-[var(--color-primary)] flex items-center gap-3">
                     <FiAlertCircle /> Manage Records
                 </h1>
+                <button
+                    onClick={() => setShowReportModal(true)}
+                    className="flex items-center gap-2 bg-(--color-primary) text-white px-5 py-2 rounded-xl hover:opacity-90 font-medium shadow-sm transition-all"
+                >
+                    <FiFileText /> Generate Report
+                </button>
             </div>
 
             <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-6">
@@ -41,7 +93,7 @@ export default function ManageFines() {
                         <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                         <input
                             type="text"
-                            placeholder="Search by name..."
+                            placeholder="Search by name or reason..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all"
@@ -50,7 +102,7 @@ export default function ManageFines() {
                 </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+            <div className={`bg-white p-6 rounded-2xl shadow-lg border border-gray-100 ${loading ? 'opacity-50' : ''}`}>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left min-w-[800px]">
                         <thead>
@@ -67,7 +119,7 @@ export default function ManageFines() {
                             {filteredFines.length === 0 ? (
                                 <tr>
                                     <td colSpan="6" className="text-center py-6 text-gray-400">
-                                        No fines found.
+                                        {loading ? "Loading fines..." : "No fines found."}
                                     </td>
                                 </tr>
                             ) : (
@@ -106,18 +158,15 @@ export default function ManageFines() {
                                                         <FiCheckCircle size={14} /> Clear Fine
                                                     </button>
                                                 ) : (
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-gray-400 text-xs font-medium italic">Cleared</span>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleRevertFine(fine.id);
-                                                            }}
-                                                            className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg text-xs font-bold transition-all shadow-sm"
-                                                        >
-                                                            <FiRotateCcw size={14} /> Revert
-                                                        </button>
-                                                    </div>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleRevertFine(fine.id);
+                                                        }}
+                                                        className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-600 hover:text-white rounded-lg text-xs font-bold transition-all shadow-sm border border-amber-100"
+                                                    >
+                                                        <FiRotateCcw size={14} /> Revert
+                                                    </button>
                                                 )}
                                             </div>
                                         </td>
@@ -143,7 +192,7 @@ export default function ManageFines() {
                         </div>
 
                         <div style={{ padding: '50px 30px 30px' }}>
-                            <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Fine Details</h2>
+                            <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Record Details</h2>
                             <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>Ref: #FN-{viewedFine.id}</p>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
@@ -152,31 +201,54 @@ export default function ManageFines() {
                                     <p style={{ fontSize: '1rem', color: 'var(--text-primary)', fontWeight: 600 }}>{viewedFine.name} ({viewedFine.type})</p>
                                 </div>
                                 <div className="col-span-2">
-                                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Reason for Fine</label>
+                                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Reason</label>
                                     <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{viewedFine.reason}</p>
                                 </div>
                                 <div>
-                                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Outstanding Amount</label>
+                                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Amount</label>
                                     <p style={{ fontSize: '1.2rem', color: 'var(--color-primary)', fontWeight: 800 }}>₹{viewedFine.amount}</p>
                                 </div>
                                 <div>
-                                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Payment Status</label>
+                                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Status</label>
                                     <p style={{ fontSize: '0.9rem', color: viewedFine.status === 'Paid' ? 'var(--success)' : 'var(--color-primary)', fontWeight: 700 }}>{viewedFine.status}</p>
                                 </div>
-                            </div>
-
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingTop: 20, borderTop: '1px solid var(--border-light)' }}>
-                                <button
-                                    className="px-6 py-2 bg-(--color-primary) hover:bg-[#610a0a] text-white rounded-lg transition-colors font-medium text-sm shadow-md"
-                                    onClick={() => setViewedFine(null)}
-                                >
-                                    Close
-                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
+
+            <FineReports
+                isOpen={showReportModal}
+                onClose={() => setShowReportModal(false)}
+                filters={{ search }}
+                onPreview={async (columns, printOption, orientation, passedFilters, reportName) => {
+                    try {
+                        setLoading(true);
+                        const res = await adminService.getFines({ ...passedFilters, limit: 1000 });
+                        if (res.success) {
+                            const reportData = res.data;
+                            generateReport({
+                                title: "Financial Audit",
+                                reportName: reportName,
+                                orientation: orientation,
+                                columns: columns,
+                                data: reportData,
+                                summaryFields: [
+                                    { label: "Total Fine Count", value: reportData.length },
+                                    { label: "Total Outstanding", value: `₹${reportData.filter(r => r.status === 'Unpaid').reduce((sum, r) => sum + (Number(r.amount) || 0), 0).toLocaleString('en-IN')}` },
+                                    { label: "Total Collected", value: `₹${reportData.filter(r => r.status === 'Paid').reduce((sum, r) => sum + (Number(r.amount) || 0), 0).toLocaleString('en-IN')}` }
+                                ]
+                            });
+                            setShowReportModal(false);
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    } finally {
+                        setLoading(false);
+                    }
+                }}
+            />
         </>
     );
 }

@@ -21,6 +21,7 @@ const navItems = [
     { name: 'Manage Records', path: '/admin/issues', icon: BookMarked },
     { name: 'Attendance', path: '/admin/attendance', icon: UserCheck },
     { name: 'Manage Fines', path: '/admin/fines', icon: AlertCircle },
+    { name: 'Manage Requests', path: '/admin/requests', icon: BookMarked },
 ];
 
 const AdminSidebar = ({ onLogout, collapsed, setCollapsed, mobileOpen = false, setMobileOpen = () => { } }) => {

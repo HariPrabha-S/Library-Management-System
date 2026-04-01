@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
-import { FiX, FiPrinter, FiEye } from "react-icons/fi";
+import { FiX, FiPrinter, FiEye, FiRotateCcw } from "react-icons/fi";
 
 export default function BookReports({ isOpen, onClose, filters, setFilters, onPreview }) {
+    const defaultLocalFilters = { keyword: "", field: "accessionNo", department: "", subject: "", issueType: "", availability: "", fromDate: "", toDate: "" };
     const [localFilters, setLocalFilters] = useState({ ...filters });
-    const [selectedPreset, setSelectedPreset] = useState("Standard Report Formats");
+    const [selectedPreset, setSelectedPreset] = useState("Standard Report Format");
     const [paperOrientation, setPaperOrientation] = useState("Portrait");
     const [printOption, setPrintOption] = useState("Window");
 
-    const reportPresets = [
-        { name: "Standard Report Formats", columns: ["accessionNo", "title", "author", "publisher", "callNumber"] },
+    const standardPresets = [
+        { name: "Standard Report Format", columns: ["accessionNo", "title", "author", "publisher", "callNumber"] },
         { name: "Acc. No / Title / Author / Publisher / Call No.", columns: ["accessionNo", "title", "author", "publisher", "callNumber"] },
         { name: "Acc. No / Title / Author / Price", columns: ["accessionNo", "title", "author", "price"] },
         { name: "Sl. No / Acc. No / Title / Author", columns: ["accessionNo", "title", "author"] },
@@ -16,236 +17,181 @@ export default function BookReports({ isOpen, onClose, filters, setFilters, onPr
         { name: "Full Details", columns: ["accessionNo", "title", "subtitle", "author", "publisher", "edition", "yearOfPublishing", "department", "subject", "price", "purchaseDate", "availability"] },
         { name: "Acc. No / Title / Author / Edition / Publisher", columns: ["accessionNo", "title", "author", "edition", "publisher"] },
         { name: "Acc. No / Title / Author / Sub Title / Gift Information", columns: ["accessionNo", "title", "author", "subtitle"] },
+    ];
+
+    const summaryPresets = [
         { name: "Acquisition Report", columns: ["purchaseDate", "accessionNo", "title", "author", "publisher", "price", "department"] },
         { name: "Finance Summary", columns: ["purchaseDate", "accessionNo", "title", "publisher", "price"] },
         { name: "Dept Finance Summary", columns: ["department", "quantity", "totalPrice"], isSummary: true },
+        { name: "Department Statistics", columns: ["department", "quantity"], isSummary: true },
     ];
 
+    const allPresets = [...standardPresets, ...summaryPresets];
+
     const searchCriteria = [
-        { label: "Accession No.", value: "accessionNo" },
-        { label: "Title", value: "title" },
-        { label: "Sub Title", value: "subtitle" },
-        { label: "Author", value: "author" },
-        { label: "Edition", value: "edition" },
-        { label: "Publisher Name", value: "publisher" },
-        { label: "Call Number", value: "callNumber" },
-        { label: "Department", value: "department" },
-        { label: "Subject", value: "subject" },
-        { label: "All", value: "all" },
+        { label: "Accession No.", value: "accessionNo" }, { label: "Title", value: "title" },
+        { label: "Sub Title", value: "subtitle" }, { label: "Author", value: "author" },
+        { label: "Edition", value: "edition" }, { label: "Publisher Name", value: "publisher" },
+        { label: "Call Number", value: "callNumber" }, { label: "Department", value: "department" },
+        { label: "Subject", value: "subject" }, { label: "All", value: "all" },
     ];
 
     const handleLoad = useCallback(() => {
-        const foundPreset = reportPresets.find(p => p.name === selectedPreset) || reportPresets[0];
+        const foundPreset = allPresets.find(p => p.name === selectedPreset) || allPresets[0];
         onPreview(foundPreset.columns, printOption, paperOrientation, localFilters, foundPreset.name);
-    }, [selectedPreset, printOption, paperOrientation, localFilters, onPreview, reportPresets]);
+    }, [selectedPreset, printOption, paperOrientation, localFilters, onPreview, allPresets]);
+
+    const handleClear = () => {
+        setLocalFilters(defaultLocalFilters);
+        setSelectedPreset("Standard Report Format");
+    };
 
     useEffect(() => {
         if (!isOpen) return;
-
-        const handleKeyDown = (e) => {
-            if (e.key === "Escape") {
-                onClose();
-            } else if (e.key === "Enter") {
-                // Prevent multi-submit if target is already a button
-                if (e.target.tagName !== "BUTTON") {
+        const handleKeys = (e) => {
+            if (e.key === "Escape") onClose();
+            if (e.key === "Enter") {
+                if (e.target.tagName !== "TEXTAREA" && e.target.tagName !== "BUTTON") {
                     handleLoad();
                 }
-            } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-                e.preventDefault();
-                const currentIndex = reportPresets.findIndex(p => p.name === selectedPreset);
-                let nextIndex;
-                if (e.key === "ArrowDown") {
-                    nextIndex = (currentIndex + 1) % reportPresets.length;
-                } else {
-                    nextIndex = (currentIndex - 1 + reportPresets.length) % reportPresets.length;
-                }
-                setSelectedPreset(reportPresets[nextIndex].name);
             }
         };
-
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [isOpen, onClose, handleLoad, selectedPreset, reportPresets]);
+        window.addEventListener("keydown", handleKeys);
+        return () => window.removeEventListener("keydown", handleKeys);
+    }, [isOpen, onClose, handleLoad]);
 
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[300] p-4 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[96vh]">
+            <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[94vh]">
 
                 {/* Header */}
-                <div className="bg-[var(--color-primary)] px-5 py-3 flex justify-between items-center text-white">
+                <div className="bg-(--color-primary) px-6 py-4 flex justify-between items-center text-white shadow-md relative z-10">
                     <div className="flex items-center gap-2">
-                        <div className="bg-white/20 p-1 rounded-lg">
-                            <FiPrinter size={16} />
+                        <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+                            <FiPrinter size={18} />
                         </div>
-                        <span className="font-bold tracking-wide text-sm">Generate Book Reports</span>
+                        <span className="font-bold tracking-widest text-sm uppercase">Report Generation Center</span>
                     </div>
-                    <button onClick={onClose} className="hover:bg-white/20 p-1 rounded-lg transition-colors">
-                        <FiX size={18} />
+                    <button onClick={onClose} className="hover:bg-white/20 p-2 rounded-xl transition-all">
+                        <FiX size={20} />
                     </button>
                 </div>
 
-                <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 overflow-hidden bg-gray-50/50 flex-1">
-                    {/* Left Column: Search & Presets */}
-                    <div className="space-y-4 flex flex-col h-full overflow-hidden">
-                        {/* Search Criteria */}
-                        <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex flex-col gap-4">
-                            <h3 className="text-[var(--color-primary)] font-bold text-xs uppercase tracking-widest flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full"></div>
-                                Search Criteria
-                            </h3>
-                            <div className="grid grid-cols-2 gap-y-3 gap-x-4">
-                                {searchCriteria.map(item => (
-                                    <label key={item.value} className="flex items-center gap-2.5 text-xs cursor-pointer group">
-                                        <div className="relative flex items-center justify-center">
-                                            <input
-                                                type="radio"
-                                                name="searchField"
-                                                value={item.value}
-                                                checked={localFilters.field === item.value}
-                                                onChange={() => setLocalFilters({ ...localFilters, field: item.value })}
-                                                className="sr-only"
-                                            />
-                                            <div className={`w-4 h-4 rounded-full border-2 transition-all duration-300 ${localFilters.field === item.value ? "border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 scale-110" : "border-gray-200 group-hover:border-gray-300"}`}></div>
-                                            {localFilters.field === item.value && (
-                                                <div className="absolute w-1.5 h-1.5 rounded-full bg-[var(--color-secondary)] animate-in zoom-in duration-300"></div>
-                                            )}
-                                        </div>
-                                        <span className={`transition-colors duration-200 ${localFilters.field === item.value ? "text-gray-900 font-bold" : "text-gray-500 font-medium group-hover:text-gray-800"}`}>
-                                            {item.label}
-                                        </span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
+                <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 overflow-y-auto custom-scrollbar bg-gray-50/50 flex-1 min-h-0">
 
-                        <div className="bg-white rounded-2xl shadow-md border border-gray-100 flex flex-col flex-1 min-h-0 overflow-hidden">
-                            <div className="px-6 pt-5 pb-3">
-                                <h3 className="text-[var(--color-primary)] font-bold text-xs uppercase tracking-widest flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full"></div>
-                                    Report Categories
-                                </h3>
+                    {/* Box 1: Search */}
+                    <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-shadow flex flex-col gap-6 min-h-0 overflow-hidden">
+                        <h3 className="text-(--color-primary) font-bold text-xs uppercase tracking-widest flex items-center gap-2 border-b pb-4">
+                            <div className="w-1.5 h-1.5 bg-(--color-primary) rounded-full"></div>
+                            1. Search Criteria
+                        </h3>
+                        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-0.5">
+                            {searchCriteria.map((item, idx) => (
+                                <label key={item.value} className={`flex items-center gap-3 text-[11px] cursor-pointer group p-2 hover:bg-gray-50 rounded-xl transition-all ${idx !== searchCriteria.length - 1 ? "border-b border-gray-50/50" : ""}`}>
+                                    <input
+                                        type="radio" name="searchField"
+                                        checked={localFilters.field === item.value}
+                                        onChange={() => setLocalFilters({ ...localFilters, field: item.value })}
+                                        className="w-3.5 h-3.5 accent-(--color-primary)"
+                                    />
+                                    <span className={`font-bold tracking-tight transition-colors ${localFilters.field === item.value ? "text-gray-900" : "text-gray-800 group-hover:text-gray-900"}`}>
+                                        {item.label}
+                                    </span>
+                                </label>
+                            ))}
+                        </div>
+                        <div className="pt-4 border-t border-gray-50 mt-auto">
+                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-2 px-1">Search Keywords</span>
+                            <input
+                                type="text"
+                                placeholder={`Enter search keywords...`}
+                                value={localFilters.keyword || ""}
+                                onChange={(e) => setLocalFilters({ ...localFilters, keyword: e.target.value })}
+                                className="w-full text-xs border border-gray-200 bg-gray-50 rounded-xl px-4 py-3.5 focus:border-(--color-primary) focus:ring-4 focus:ring-(--color-primary)/5 outline-none transition-all font-bold placeholder:font-medium"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Box 2: Standard Formats */}
+                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-shadow flex flex-col gap-4 overflow-hidden">
+                        <h3 className="text-(--color-primary) font-bold text-xs uppercase tracking-widest flex items-center gap-2 border-b pb-4">
+                            <div className="w-1.5 h-1.5 bg-(--color-primary) rounded-full"></div>
+                            2. Standard Formats
+                        </h3>
+                        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-0.5">
+                            {standardPresets.map((preset, idx) => (
+                                <div
+                                    key={preset.name}
+                                    onClick={() => setSelectedPreset(preset.name)}
+                                    className={`text-[11px] p-3 cursor-pointer rounded-lg transition-all font-bold border ${selectedPreset === preset.name ? "bg-(--color-primary) text-white border-(--color-primary) shadow-md" : "text-gray-600 border-transparent hover:bg-gray-50"} ${idx !== standardPresets.length - 1 ? "border-b border-gray-50/50" : ""}`}
+                                >
+                                    {preset.name}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Box 3: Summary Reports & Settings */}
+                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-shadow flex flex-col gap-4 overflow-hidden">
+                        <h3 className="text-(--color-primary) font-bold text-xs uppercase tracking-widest flex items-center gap-2 border-b pb-4">
+                            <div className="w-1.5 h-1.5 bg-(--color-primary) rounded-full"></div>
+                            3. Summary Reports
+                        </h3>
+                        <div className="space-y-0.5">
+                            {summaryPresets.map((preset, idx) => (
+                                <div
+                                    key={preset.name}
+                                    onClick={() => setSelectedPreset(preset.name)}
+                                    className={`text-[11px] p-3 cursor-pointer rounded-lg transition-all font-bold border ${selectedPreset === preset.name ? "bg-(--color-primary) text-white border-(--color-primary) shadow-md" : "text-gray-700 border-transparent hover:bg-gray-50"} ${idx !== summaryPresets.length - 1 ? "border-b border-gray-50/50" : ""}`}
+                                >
+                                    {preset.name}
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mt-auto pt-6 border-t space-y-6">
+                            <div>
+                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-4 px-1">Page Orientation</span>
+                                <div className="flex gap-8 px-1">
+                                    {["Portrait", "Landscape"].map(opt => (
+                                        <label key={opt} className="flex items-center gap-3 text-[11px] cursor-pointer group">
+                                            <input type="radio" checked={paperOrientation === opt} onChange={() => setPaperOrientation(opt)} className="w-4 h-4 accent-(--color-primary)" />
+                                            <span className="font-bold text-gray-700">{opt}</span>
+                                        </label>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="flex-1 overflow-y-auto custom-scrollbar px-3 pb-4">
-                                <div className="space-y-1">
-                                    {reportPresets.map(preset => (
-                                        <div
-                                            key={preset.name}
-                                            onClick={() => setSelectedPreset(preset.name)}
-                                            className={`text-xs p-3 cursor-pointer rounded-xl transition-all duration-300 font-semibold ${selectedPreset === preset.name ? "bg-[var(--color-secondary)] text-white shadow-md transform translate-x-1" : "text-gray-600 hover:bg-gray-100/50 hover:text-[var(--color-secondary)]"}`}
-                                        >
-                                            {preset.name}
-                                        </div>
+                            <div>
+                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-4 px-1">Output Delivery</span>
+                                <div className="flex gap-8 px-1">
+                                    {["Window", "Printer"].map(opt => (
+                                        <label key={opt} className="flex items-center gap-3 text-[11px] cursor-pointer group">
+                                            <input type="radio" checked={printOption === opt} onChange={() => setPrintOption(opt)} className="w-4 h-4 accent-(--color-primary)" />
+                                            <span className="font-bold text-gray-700">{opt}</span>
+                                        </label>
                                     ))}
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    {/* Right Column: Filters & Print Options */}
-                    <div className="space-y-4 flex flex-col h-full">
-                        {/* Orientation */}
-                        <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex flex-col gap-4">
-                            <h3 className="text-[var(--color-primary)] font-bold text-xs uppercase tracking-widest flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full"></div>
-                                Orientation
-                            </h3>
-                            <div className="flex gap-8">
-                                {["Portrait", "Landscape"].map(opt => (
-                                    <label key={opt} className="flex items-center gap-3 text-xs cursor-pointer group">
-                                        <div className="relative flex items-center justify-center">
-                                            <input type="radio" name="orientation" checked={paperOrientation === opt} onChange={() => setPaperOrientation(opt)} className="sr-only" />
-                                            <div className={`w-4 h-4 rounded-full border-2 transition-all duration-300 ${paperOrientation === opt ? "border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 scale-110" : "border-gray-200 group-hover:border-gray-300"}`}></div>
-                                            {paperOrientation === opt && <div className="absolute w-1.5 h-1.5 rounded-full bg-[var(--color-secondary)] animate-in zoom-in duration-300"></div>}
-                                        </div>
-                                        <span className={`font-bold transition-colors ${paperOrientation === opt ? "text-gray-900" : "text-gray-500 group-hover:text-gray-700"}`}>{opt}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Print Options */}
-                        <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex flex-col gap-4">
-                            <h3 className="text-[var(--color-primary)] font-bold text-xs uppercase tracking-widest flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full"></div>
-                                Print To
-                            </h3>
-                            <div className="flex gap-8">
-                                {["Window", "Printer"].map(opt => (
-                                    <label key={opt} className="flex items-center gap-3 text-xs cursor-pointer group">
-                                        <div className="relative flex items-center justify-center">
-                                            <input type="radio" name="printTo" checked={printOption === opt} onChange={() => setPrintOption(opt)} className="sr-only" />
-                                            <div className={`w-4 h-4 rounded-full border-2 transition-all duration-300 ${printOption === opt ? "border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 scale-110" : "border-gray-200 group-hover:border-gray-300"}`}></div>
-                                            {printOption === opt && <div className="absolute w-1.5 h-1.5 rounded-full bg-[var(--color-secondary)] animate-in zoom-in duration-300"></div>}
-                                        </div>
-                                        <span className={`font-bold transition-colors ${printOption === opt ? "text-gray-900" : "text-gray-500 group-hover:text-gray-700"}`}>{opt}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-
-                        <button
-                            className="w-full flex items-center gap-3 text-xs bg-white p-4 rounded-2xl border border-gray-100 shadow-md cursor-pointer hover:bg-gray-50 transition-colors group"
-                        >
-                            <input type="checkbox" checked readOnly className="w-4 h-4 rounded-md accent-[var(--color-secondary)] cursor-pointer" />
-                            <span className="font-bold text-gray-600 group-hover:text-gray-800">Show Selection Condition on Report</span>
-                        </button>
-
-                        {/* Date Range & Preview - Bottom Right Section */}
-                        <div className="mt-auto bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex flex-col gap-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="flex flex-col gap-1.5">
-                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">From Purchase Date</span>
-                                    <input
-                                        type="date"
-                                        value={localFilters.fromDate || ""}
-                                        onChange={(e) => setLocalFilters({ ...localFilters, fromDate: e.target.value })}
-                                        className="text-xs border border-gray-100 bg-gray-50/50 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-[var(--color-secondary)]/20 focus:border-[var(--color-secondary)] outline-none transition-all"
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">To Purchase Date</span>
-                                    <input
-                                        type="date"
-                                        value={localFilters.toDate || ""}
-                                        onChange={(e) => setLocalFilters({ ...localFilters, toDate: e.target.value })}
-                                        className="text-xs border border-gray-100 bg-gray-50/50 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-[var(--color-secondary)]/20 focus:border-[var(--color-secondary)] outline-none transition-all"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="pt-2">
-                                <button
-                                    onClick={handleLoad}
-                                    className="w-full bg-[var(--color-secondary)] text-white hover:opacity-95 py-2.5 text-xs font-bold rounded-xl shadow-lg shadow-[var(--color-secondary)]/10 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-                                >
-                                    <FiEye size={14} />
-                                    Book Purchase
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-                {/* Footer Buttons */}
-                <div className="bg-white border-t border-gray-100 px-6 py-4 flex justify-end items-center gap-4">
-                    <p className="mr-auto text-[10px] text-gray-400 font-medium italic">All reports generated reflect real-time library database state.</p>
+                <div className="bg-white border-t border-gray-100 px-8 py-5 flex justify-end items-center gap-8 shadow-[0_-10px_40px_rgba(0,0,0,0.06)] relative z-20">
                     <button
-                        onClick={onClose}
-                        className="text-gray-500 hover:text-gray-700 font-bold text-xs px-4 transition-colors"
+                        onClick={handleClear}
+                        className="text-gray-400 hover:text-(--color-primary) font-bold text-xs uppercase tracking-widest px-4 transition-all flex items-center gap-2 group"
                     >
-                        Close
+                        <FiRotateCcw className="group-hover:-rotate-45 transition-transform" /> Clear Settings
                     </button>
                     <button
-                        onClick={() => onPreview((reportPresets.find(p => p.name === selectedPreset) || reportPresets[0]).columns, printOption, paperOrientation, { ...localFilters, fromDate: null, toDate: null }, (reportPresets.find(p => p.name === selectedPreset) || reportPresets[0]).name)}
-                        className="bg-[var(--color-primary)] text-white hover:opacity-95 px-6 py-2 text-xs font-bold rounded-xl shadow-lg shadow-[var(--color-primary)]/20 transition-all active:scale-95 flex items-center gap-2"
+                        onClick={handleLoad}
+                        className="bg-(--color-primary) text-white px-12 py-4 text-xs font-bold rounded-xl shadow-2xl shadow-(--color-primary)/20 hover:opacity-95 transition-all active:scale-95 flex items-center gap-3 uppercase tracking-widest"
                     >
-                        <FiEye size={14} />
-                        Preview
+                        <FiEye size={18} /> Process & Open
                     </button>
                 </div>
             </div>
-        </div >
+        </div>
     );
 }

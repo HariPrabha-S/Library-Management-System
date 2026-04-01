@@ -1,9 +1,20 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { FiTrash } from "react-icons/fi";
 import { User, Mail, GraduationCap, XCircle, BadgeCheck, Phone, Briefcase, BookOpen } from "lucide-react";
 
 export default function FacultyTable({ faculties, selectedFaculties, onSelect, onDelete, selectedColumns, isPrintable }) {
     const [viewedFaculty, setViewedFaculty] = useState(null);
+
+    useEffect(() => {
+        const handleKeys = (e) => {
+            if (!viewedFaculty) return;
+            if (e.key === "Escape" || e.key === "Enter") {
+                setViewedFaculty(null);
+            }
+        };
+        window.addEventListener("keydown", handleKeys);
+        return () => window.removeEventListener("keydown", handleKeys);
+    }, [viewedFaculty]);
 
     const isColVisible = (colName) => {
         if (!selectedColumns) return true;
