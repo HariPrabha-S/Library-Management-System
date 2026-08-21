@@ -1,91 +1,116 @@
-import React, { useState, useEffect } from 'react';
-import { User, Mail, BookOpen, GraduationCap, BadgeCheck, Pencil, Phone, CalendarDays, Save, X, Camera } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { User, Mail, BookOpen, GraduationCap, BadgeCheck, Pencil, Phone, CalendarDays, Save, X, Camera, Upload } from 'lucide-react';
 
 const Profile = ({ user, onUpdate }) => {
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [profileData, setProfileData] = useState({
-    name: user?.name || 'Dr. Alan Turing',
-    facultyId: user?.facultyId || user?.id || 'FAC9876',
-    department: user?.dept || user?.department || 'Computer Science',
-    email: user?.email || 'alan.turing@university.edu',
-    phone: user?.phone || '+91 91234 56789',
-    semester: user?.semester || 'Associate Professor',
-    role: user?.role || 'Faculty',
-    enrollmentYear: user?.enrollmentYear || '2015',
-    profileImage: user?.profileImage || null,
+    name: '', facultyId: '', department: '', email: '',
+    phone: '', semester: '', role: 'Faculty', enrollmentYear: '', profileImage: null,
   });
+  const [editForm, setEditForm] = useState({});
+
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const loggedInUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const facultyId = user?.facultyId || loggedInUser.facultyId || '';
 
   useEffect(() => {
-    if (user) {
-      setProfileData({
-        name: user.name || 'Dr. Alan Turing',
-        facultyId: user.facultyId || user.id || 'FAC9876',
-        department: user.dept || user.department || 'Computer Science',
-        email: user.email || 'alan.turing@university.edu',
-        phone: user.phone || '+91 91234 56789',
-        semester: user.semester || 'Associate Professor',
-        role: user.role || 'Faculty',
-        enrollmentYear: user.enrollmentYear || '2015',
-        profileImage: user.profileImage || null,
-      });
-    }
-  }, [user]);
+    if (!facultyId) return;
+    setLoading(true);
+    fetch(`/api/profile/${facultyId}`)
+      .then(r => r.json())
+      .then(d => {
+        const data = {
+          name: d.name || '',
+          facultyId: d.studentId || facultyId,
+          department: d.department || '',
+          email: d.email || '',
+          phone: d.phone || '',
+          semester: d.semester || '',
+          role: d.role || 'Faculty',
+          enrollmentYear: d.enrollmentYear || '',
+          profileImage: d.profileImage || null,
+        };
+        setProfileData(data);
+        setEditForm(data);
+        setLoading(false);
+      })
+      .catch(err => { console.error('Profile fetch error:', err); setLoading(false); });
+  }, [facultyId]);
 
-  const handleImageChange = (e) => {
+
+
+  const initials = (profileData.name || 'FC').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+  const handlePhotoChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditForm(prev => ({ ...prev, profileImage: reader.result }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    const localUrl = URL.createObjectURL(file);
+    setPreviewUrl(localUrl);
+    setUploadingPhoto(true);
+
+    const formData = new FormData();
+    formData.append('photo', file);
+    formData.append('identifier', facultyId);
+
+    try {
+      const res = await fetch('/api/profile/upload-photo', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        const newImg = data.photoUrl;
+        setEditForm(prev => ({ ...prev, profileImage: newImg }));
+        setProfileData(prev => ({ ...prev, profileImage: newImg }));
+        const updated = { ...loggedInUser, profileImage: newImg };
+        localStorage.setItem('user', JSON.stringify(updated));
+        if (onUpdate) onUpdate(updated);
+        setPreviewUrl(null);
+      } else {
+        alert(data.message || 'Photo upload failed');
+        setPreviewUrl(null);
+      }
+    } catch (err) {
+      console.error('Photo upload error:', err);
+      alert('Error uploading photo');
+      setPreviewUrl(null);
+    } finally {
+      setUploadingPhoto(false);
     }
   };
-
-  const [editForm, setEditForm] = useState({ ...profileData });
-
-  const initials = (profileData.name || 'Faculty').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   const handleSave = async () => {
     setLoading(true);
-    // try {
-    //   const response = await fetch('http://localhost:5001/api/profile/update', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({
-    //       facultyId: profileData.facultyId,
-    //       ...editForm
-    //     })
-    //   });
-    //   
-    //   const data = await response.json();
-    //   if (response.ok) {
-    //     setProfileData({ ...editForm });
-    //     setEditing(false);
-    //     setSaved(true);
-    //     if (onUpdate) onUpdate(data.user);
-    //     setTimeout(() => setSaved(false), 3000);
-    //   } else {
-    //     alert(data.message || 'Update failed');
-    //   }
-    // } catch (err) {
-    //   console.error(err);
-    //   alert('Error updating profile');
-    // } finally {
-    //   setLoading(false);
-    // }
-
-    setTimeout(() => {
-      setProfileData({ ...editForm });
-      setEditing(false);
-      setSaved(true);
-      if (onUpdate) onUpdate({ ...user, ...editForm });
-      setTimeout(() => setSaved(false), 3000);
+    try {
+      const response = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId: facultyId, ...editForm })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setProfileData({ ...editForm });
+        setEditing(false);
+        setSaved(true);
+        const updated = { ...loggedInUser, name: editForm.name, email: editForm.email, phone: editForm.phone };
+        localStorage.setItem('user', JSON.stringify(updated));
+        if (onUpdate) onUpdate(updated);
+        setTimeout(() => setSaved(false), 3000);
+      } else {
+        alert(data.message || 'Update failed');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error updating profile');
+    } finally {
       setLoading(false);
-    }, 600);
+    }
   };
+
+  const currentPhoto = previewUrl || editForm.profileImage || profileData.profileImage;
 
   const fields = [
     { label: 'Full Name', key: 'name', icon: User, editable: true },
@@ -98,24 +123,6 @@ const Profile = ({ user, onUpdate }) => {
     { label: 'Role', key: 'role', icon: User, editable: false },
   ];
 
-  const [stats, setStats] = useState(null);
-
-  useEffect(() => {
-    // if (!user?.facultyId) return;
-    // fetch(`http://localhost:5001/api/dashboard/${user.facultyId}`)
-    //   .then(r => r.json())
-    //   .then(d => setStats(d))
-    //   .catch(err => console.error('Profile stats fetch error:', err));
-
-    // Dummy stats for frontend
-    setStats({
-      totalIssued: 4,
-      dueSoon: 0,
-      totalFine: 0,
-      pendingReqs: 1
-    });
-  }, [user?.facultyId]);
-
   return (
     <div className="animate-fade-in" style={{ maxWidth: 780, margin: '0 auto' }}>
 
@@ -125,56 +132,26 @@ const Profile = ({ user, onUpdate }) => {
         </div>
       )}
 
-      {/* Profile Hero Card */}
       <div className="panel" style={{ marginBottom: 24, overflow: 'hidden' }}>
-        {/* Header Banner */}
-        <div style={{ height: 100, background: 'linear-gradient(135deg, var(--primary-color), #a01010)', position: 'relative' }}>
+        <div style={{ height: 110, background: 'linear-gradient(135deg, var(--primary-color), #a01010)', position: 'relative' }}>
           <div
             style={{
-              position: 'absolute',
-              bottom: -40,
-              left: 32,
-              width: 80,
-              height: 80,
-              borderRadius: 20,
+              position: 'absolute', bottom: -44, left: 32,
+              width: 88, height: 88, borderRadius: 22,
               background: 'linear-gradient(135deg, #790c0c, #a01010)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1.8rem',
-              fontWeight: 700,
-              color: 'white',
-              border: '4px solid white',
-              boxShadow: '0 4px 16px rgba(121,12,12,0.3)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '1.9rem', fontWeight: 700, color: 'white',
+              border: '4px solid white', boxShadow: '0 4px 20px rgba(121,12,12,0.35)',
               overflow: 'hidden',
-              cursor: editing ? 'pointer' : 'default'
             }}
-            onClick={() => editing && document.getElementById('profile-upload').click()}
           >
-            {(editing ? editForm.profileImage : profileData.profileImage) ? (
-              <img
-                src={editing ? editForm.profileImage : profileData.profileImage}
-                alt="Profile"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+            {currentPhoto ? (
+              <img src={currentPhoto} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : initials}
-
-            {editing && (
-              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Camera size={24} color="white" />
-              </div>
-            )}
-            <input
-              type="file"
-              id="profile-upload"
-              hidden
-              accept="image/*"
-              onChange={handleImageChange}
-            />
           </div>
         </div>
 
-        <div style={{ padding: '52px 32px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
+        <div style={{ padding: '56px 32px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
           <div>
             <h2 style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Playfair Display', serif" }}>
               {profileData.name}
@@ -189,34 +166,14 @@ const Profile = ({ user, onUpdate }) => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 8 }}>
-            {editing ? (
-              <>
-                <button className="btn btn-ghost btn-sm" onClick={() => { setEditing(false); setEditForm({ ...profileData }); }} id="cancel-edit-btn">
-                  <X size={15} /> Cancel
-                </button>
-                <button className="btn btn-secondary btn-sm" onClick={handleSave} id="save-profile-btn">
-                  <Save size={15} /> Save Changes
-                </button>
-              </>
-            ) : (
-              <button className="btn btn-outline btn-sm" onClick={() => setEditing(true)} id="edit-profile-btn">
-                <Pencil size={15} /> Edit Profile
-              </button>
-            )}
-          </div>
+
         </div>
       </div>
 
-      {/* Profile Fields */}
       <div className="panel">
         <div className="panel-header">
           <h3 className="panel-title">Personal Information</h3>
-          <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            {editing ? 'Editing mode active' : 'Click "Edit Profile" to make changes'}
-          </span>
         </div>
-
         <div style={{ padding: '8px 24px 24px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 28px' }}>
             {fields.map((field) => {
@@ -234,13 +191,13 @@ const Profile = ({ user, onUpdate }) => {
                       type="text"
                       id={`profile-field-${field.key}`}
                       className="form-input"
-                      value={editForm[field.key]}
+                      value={editForm[field.key] || ''}
                       onChange={(e) => setEditForm(prev => ({ ...prev, [field.key]: e.target.value }))}
                       style={{ padding: '10px 14px', fontSize: '0.9rem' }}
                     />
                   ) : (
                     <p style={{ fontSize: '0.95rem', fontWeight: 500, color: 'var(--text-primary)', paddingLeft: 2 }}>
-                      {profileData[field.key]}
+                      {profileData[field.key] || '—'}
                       {!field.editable && <span style={{ marginLeft: 8, fontSize: '0.72rem', color: 'var(--text-muted)' }}>(read-only)</span>}
                     </p>
                   )}
@@ -251,20 +208,7 @@ const Profile = ({ user, onUpdate }) => {
         </div>
       </div>
 
-      {/* Library Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginTop: 20 }}>
-        {[
-          { label: 'Books Issued', value: stats?.totalIssued || '0', color: 'var(--secondary-color)', bg: 'rgba(1,137,141,0.08)' },
-          { label: 'Due Soon', value: stats?.dueSoon || '0', color: 'var(--primary-color)', bg: 'rgba(121,12,12,0.06)' },
-          { label: 'Total Fine', value: `₹${stats?.totalFine || '0'}`, color: 'var(--success)', bg: 'var(--success-light)' },
-          { label: 'Pending Req.', value: stats?.pendingReqs || '0', color: '#8b5cf6', bg: 'rgba(139,92,246,0.08)' },
-        ].map((s, i) => (
-          <div key={i} style={{ background: 'white', borderRadius: 12, padding: '16px 20px', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: s.color, fontFamily: "'Inter',sans-serif" }}>{s.value}</div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: 4 }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
+
     </div>
   );
 };

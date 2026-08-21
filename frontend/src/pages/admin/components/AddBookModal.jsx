@@ -27,10 +27,10 @@ export default function AddBookModal({ setShowModal, refreshBooks }) {
     const [loading, setLoading] = useState(false);
 
     const handleChange = (field, value) => {
-        setFormData({
-            ...formData,
+        setFormData(prev => ({
+            ...prev,
             [field]: value
-        });
+        }));
     };
 
     const handleClear = () => {

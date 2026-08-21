@@ -1,6 +1,20 @@
-const { Issue, Book, Student, Faculty, Fine, sequelize } = require('../../models/admin/adminModels');
+const { Issue, Book, BookCopy, Student, Faculty, Fine, Holiday, Reservation, Notification, sequelize } = require('../../models/admin/adminModels');
 const { sendSuccess, sendError } = require('../../utils/adminResponse');
 const { Op } = require('sequelize');
+const { getOverdueDaysCount, getFineableOverdueDays } = require('../../utils/fineHelper');
+const { reindexQueuePositions, processExpiredReservations } = require('./adminReservationController');
+
+const calculateOverdueFine = async (dueDate, endDate, transaction) => {
+    const overdueDays = getOverdueDaysCount(dueDate, endDate);
+    if (!overdueDays) return { fineableDays: 0, amount: 0 };
+    const holidays = await Holiday.findAll({
+        where: { date: { [Op.gt]: dueDate, [Op.lte]: endDate } },
+        attributes: ['date'],
+        transaction
+    });
+    const fineableDays = getFineableOverdueDays(dueDate, endDate, holidays);
+    return { fineableDays, amount: fineableDays * 1 };
+};
 
 exports.getIssues = async (req, res) => {
     try {
@@ -24,7 +38,8 @@ exports.getIssues = async (req, res) => {
         const issues = await Issue.findAll({
             where: whereClause,
             include: [
-                { model: Book, attributes: ['title', 'accessionNo', 'department'] },
+                { model: Book, attributes: ['title', 'department'] },
+                { model: BookCopy, attributes: ['accessionNo'] },
                 { model: Student, attributes: ['name', 'department', 'rollNo'] },
                 { model: Faculty, attributes: ['name', 'department', 'employeeId'] }
             ],
@@ -57,11 +72,11 @@ exports.getIssues = async (req, res) => {
                 issueDate: issue.issueDate,
                 returnDate: issue.actualReturnDate,
                 dueDate: issue.returnDate,
-                status: isOverdue ? 'Overdue' : issue.status
+                status: isOverdue ? 'Overdue' : issue.status,
+                accessionNo: issue.BookCopy ? issue.BookCopy.accessionNo : ''
             };
         });
 
-        // Filter search logic
         let finalOutput = mappedIssues;
         if (search) {
             const sLower = search.toLowerCase();
@@ -74,6 +89,7 @@ exports.getIssues = async (req, res) => {
 
         return sendSuccess(res, finalOutput, 'Issues fetched successfully');
     } catch (error) {
+        console.error('getIssues error:', error);
         return sendError(res, 'Error fetching issues', 500);
     }
 };
@@ -85,7 +101,6 @@ exports.issueBook = async (req, res) => {
 
         // 1. Lookup Student/Faculty if only name/rollNo provided
         if (!borrowerId && student) {
-            // Try lookup by rollNo or name
             const foundStudent = await Student.findOne({
                 where: {
                     [Op.or]: [
@@ -100,7 +115,6 @@ exports.issueBook = async (req, res) => {
                 borrowerId = foundStudent.id;
                 borrowerType = 'Student';
             } else {
-                // Try Faculty
                 const foundFaculty = await Faculty.findOne({
                     where: {
                         [Op.or]: [
@@ -122,26 +136,34 @@ exports.issueBook = async (req, res) => {
             return sendError(res, 'Borrower (Student/Faculty) not found. Please provide a valid Roll No or Name.', 404);
         }
 
-        // 2. Lookup Book if only title/accessionNo provided
-        if (!bookId && book) {
-            const foundBook = await Book.findOne({
-                where: {
-                    [Op.or]: [
-                        { accessionNo: book },
-                        { title: book }
-                    ]
-                },
+        let targetCopy = null;
+
+        // 2. Lookup physical BookCopy first if a copy/accessionNo is specified
+        if (book) {
+            // Check if book input is a specific accession number
+            targetCopy = await BookCopy.findOne({
+                where: { accessionNo: book, status: 'Available' },
+                include: [{ model: Book }],
                 transaction
             });
 
-            if (foundBook) {
-                bookId = foundBook.id;
+            if (targetCopy) {
+                bookId = targetCopy.bookId;
+            } else {
+                // If not found as accession number, check if it's a book title
+                const foundBook = await Book.findOne({
+                    where: { title: book },
+                    transaction
+                });
+                if (foundBook) {
+                    bookId = foundBook.id;
+                }
             }
         }
 
         if (!bookId) {
             await transaction.rollback();
-            return sendError(res, 'Book not found. Please provide a valid Accession No or Title.', 404);
+            return sendError(res, 'Book not found or no copies available.', 404);
         }
 
         const targetBook = await Book.findByPk(bookId, { transaction });
@@ -150,13 +172,27 @@ exports.issueBook = async (req, res) => {
             return sendError(res, 'Book record missing.', 404);
         }
 
-        if (targetBook.availableCopies <= 0) {
+        if (targetBook.isDead) {
+            await transaction.rollback();
+            return sendError(res, 'This book is marked as dead and cannot be issued', 400);
+        }
+
+        // If we haven't resolved a specific copy yet, find any available copy of the book
+        if (!targetCopy) {
+            targetCopy = await BookCopy.findOne({
+                where: { bookId: targetBook.id, status: 'Available' },
+                transaction
+            });
+        }
+
+        if (!targetCopy) {
             await transaction.rollback();
             return sendError(res, 'No copies available to issue', 400);
         }
 
         const issueData = {
-            bookId,
+            bookId: targetBook.id,
+            copyId: targetCopy.id,
             issueDate: issueDate || new Date(),
             returnDate: returnDate || new Date(new Date().setDate(new Date().getDate() + 14)),
             status: 'Issued'
@@ -167,10 +203,10 @@ exports.issueBook = async (req, res) => {
 
         const issue = await Issue.create(issueData, { transaction });
 
-        // Update stock
-        targetBook.availableCopies -= 1;
-        targetBook.timesIssued += 1;
-        await targetBook.save({ transaction });
+        // Update physical copy status
+        targetCopy.status = 'Issued';
+        targetCopy.timesIssued = (targetCopy.timesIssued || 0) + 1;
+        await targetCopy.save({ transaction });
 
         await transaction.commit();
         return sendSuccess(res, issue, 'Book issued successfully', 201);
@@ -184,78 +220,206 @@ exports.issueBook = async (req, res) => {
 exports.returnBook = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
+        await processExpiredReservations(transaction);
+
         const { id } = req.params;
         const issue = await Issue.findByPk(id, { transaction });
-        if (!issue || issue.status === 'Returned') {
+        if (!issue || issue.status === 'Returned' || issue.status === 'Lost') {
             await transaction.rollback();
-            return sendError(res, 'Issue record not found or already returned', 400);
+            return sendError(res, 'Issue record not found or already closed', 400);
         }
 
         issue.status = 'Returned';
         issue.actualReturnDate = new Date();
         await issue.save({ transaction });
 
-        const book = await Book.findByPk(issue.bookId, { transaction });
-        if (book) {
-            book.availableCopies += 1;
-            await book.save({ transaction });
+        // Handle physical copy status and FIFO queue assignment
+        if (issue.copyId) {
+            const copy = await BookCopy.findByPk(issue.copyId, { transaction });
+            if (copy) {
+                // Check if there are waiting reservations for this book (FIFO)
+                const nextWaiting = await Reservation.findOne({
+                    where: {
+                        bookId: issue.bookId,
+                        status: 'Waiting'
+                    },
+                    order: [['reservationDate', 'ASC'], ['queuePosition', 'ASC']],
+                    transaction
+                });
+
+                if (nextWaiting) {
+                    // Assign copy to oldest FIFO reservation
+                    const expiry = new Date();
+                    expiry.setHours(expiry.getHours() + 48); // 48-hour pickup window
+
+                    nextWaiting.status = 'Ready for Pickup';
+                    nextWaiting.copyId = copy.id;
+                    nextWaiting.assignedDate = new Date();
+                    nextWaiting.pickupExpiry = expiry;
+                    await nextWaiting.save({ transaction });
+
+                    // Update copy status to Reserved (cannot become available to walk-in borrowers)
+                    copy.status = 'Reserved';
+                    await copy.save({ transaction });
+
+                    // Re-index remaining queue positions
+                    await reindexQueuePositions(issue.bookId, transaction);
+
+                    // Send notification to member
+                    const book = await Book.findByPk(issue.bookId, { transaction });
+                    const bookTitle = book ? book.title : 'Reserved Book';
+                    await Notification.create({
+                        memberId: nextWaiting.memberId,
+                        memberType: nextWaiting.memberType,
+                        title: 'Book Ready for Pickup',
+                        message: `Your reserved book "${bookTitle}" is now ready for pickup! Please collect it by ${expiry.toLocaleString()}.`,
+                        type: 'READY_FOR_PICKUP'
+                    }, { transaction });
+                } else {
+                    // If no waiting reservations, revert copy to Available
+                    copy.status = 'Available';
+                    await copy.save({ transaction });
+                }
+            }
         }
 
-        // Overdue logic + Fine
+        // Overdue fine: Rs.1 per day after due date
+        const { waiveFine } = req.body || {};
         const dueDate = new Date(issue.returnDate);
         const returnDate = new Date();
-        if (returnDate > dueDate) {
-            const diffDays = Math.ceil(Math.abs(returnDate - dueDate) / (1000 * 60 * 60 * 24));
-            const fineRate = process.env.FINE_PER_DAY ? parseFloat(process.env.FINE_PER_DAY) : 10;
-            const amount = diffDays * fineRate;
-
-            await Fine.create({
-                userType: issue.studentId ? 'Student' : 'Faculty',
-                studentId: issue.studentId,
-                facultyId: issue.facultyId,
-                issueId: issue.id,
-                amount,
-                reason: `Late Return - ${diffDays} days`,
-                status: 'Unpaid'
-            }, { transaction });
+        if (returnDate > dueDate && !waiveFine) {
+            const { fineableDays, amount } = await calculateOverdueFine(dueDate, returnDate, transaction);
+            if (fineableDays > 0) {
+                await Fine.create({
+                    userType: issue.studentId ? 'Student' : 'Faculty',
+                    studentId: issue.studentId,
+                    facultyId: issue.facultyId,
+                    issueId: issue.id,
+                    amount,
+                    reason: 'Overdue Fine',
+                    status: 'Pending'
+                }, { transaction });
+            }
         }
 
         await transaction.commit();
         return sendSuccess(res, issue, 'Book returned successfully');
     } catch (error) {
         await transaction.rollback();
+        console.error('returnBook error:', error);
         return sendError(res, 'Error returning book', 500);
     }
 };
 
-exports.revertReturn = async (req, res) => {
+exports.renewBook = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
         const { id } = req.params;
         const issue = await Issue.findByPk(id, { transaction });
-        if (!issue || issue.status !== 'Returned') {
+        if (!issue || issue.status === 'Returned' || issue.status === 'Lost') {
             await transaction.rollback();
-            return sendError(res, 'Issue record not found or not returned', 400);
+            return sendError(res, 'Only active issue records can be renewed', 400);
         }
 
-        const isOverdue = new Date() > new Date(issue.returnDate);
-        issue.status = isOverdue ? 'Overdue' : 'Issued';
-        issue.actualReturnDate = null;
+        const book = await Book.findByPk(issue.bookId, { transaction });
+        if (book && book.isDead) {
+            await transaction.rollback();
+            return sendError(res, 'This book is marked as dead and cannot be renewed', 400);
+        }
+
+        const today = new Date();
+        const dueDate = new Date(issue.returnDate);
+        let newDueDate;
+
+        if (today > dueDate) {
+            const { fineableDays, amount } = await calculateOverdueFine(dueDate, today, transaction);
+            if (fineableDays > 0) {
+                await Fine.create({
+                    userType: issue.studentId ? 'Student' : 'Faculty',
+                    studentId: issue.studentId,
+                    facultyId: issue.facultyId,
+                    issueId: issue.id,
+                    amount,
+                    reason: 'Overdue Fine',
+                    status: 'Pending'
+                }, { transaction });
+            }
+            const d = new Date();
+            d.setDate(d.getDate() + 14);
+            newDueDate = d.toISOString().split('T')[0];
+        } else {
+            const d = new Date(dueDate);
+            d.setDate(d.getDate() + 14);
+            newDueDate = d.toISOString().split('T')[0];
+        }
+
+        issue.returnDate = newDueDate;
+        issue.renewalCount = (issue.renewalCount || 0) + 1;
+        issue.renewalDate = new Date().toISOString().split('T')[0];
+        issue.status = 'Issued';
         await issue.save({ transaction });
 
+        await transaction.commit();
+        return sendSuccess(res, issue, 'Book renewed successfully');
+    } catch (error) {
+        await transaction.rollback();
+        console.error('renewBook error:', error);
+        return sendError(res, 'Error renewing book', 500);
+    }
+};
+
+exports.markLost = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        const { id } = req.params;
+        const issue = await Issue.findByPk(id, { transaction });
+        if (!issue || issue.status === 'Returned' || issue.status === 'Lost') {
+            await transaction.rollback();
+            return sendError(res, 'Only active issue records can be marked lost', 400);
+        }
+
         const book = await Book.findByPk(issue.bookId, { transaction });
+        const bookPrice = book ? Number(book.price || 0) : 0;
+        const amount = bookPrice * 3;
+
+        issue.status = 'Lost';
+        issue.actualReturnDate = new Date();
+        await issue.save({ transaction });
+
+        // Update physical copy status to Lost
+        if (issue.copyId) {
+            const copy = await BookCopy.findByPk(issue.copyId, { transaction });
+            if (copy) {
+                copy.status = 'Lost';
+                await copy.save({ transaction });
+            }
+        }
+
         if (book) {
-            book.availableCopies -= 1;
+            book.isDead = true;
             await book.save({ transaction });
         }
 
-        // Delete fine if any
-        await Fine.destroy({ where: { issueId: issue.id }, transaction });
+        const { waiveFine } = req.body || {};
+        const finePayload = {
+            userType: issue.studentId ? 'Student' : 'Faculty',
+            studentId: issue.studentId,
+            facultyId: issue.facultyId,
+            issueId: issue.id,
+            amount,
+            reason: 'Lost Book',
+            status: 'Pending'
+        };
+
+        if (!waiveFine) {
+            await Fine.create(finePayload, { transaction });
+        }
 
         await transaction.commit();
-        return sendSuccess(res, issue, 'Return reverted successfully');
+        return sendSuccess(res, { issue, fine: finePayload }, 'Book marked as lost and fine generated');
     } catch (error) {
         await transaction.rollback();
-        return sendError(res, 'Error reverting return', 500);
+        console.error('markLost error:', error);
+        return sendError(res, 'Error marking book as lost', 500);
     }
 };

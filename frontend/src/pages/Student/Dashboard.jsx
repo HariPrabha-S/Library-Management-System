@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BookOpen, Clock, DollarSign, Bookmark, MapPin,
-  TrendingUp, ArrowRight, AlertCircle, CheckCircle, RefreshCw
+  TrendingUp, ArrowRight, AlertCircle, CheckCircle, RefreshCw,
+  Calendar
 } from 'lucide-react';
 
 
@@ -10,46 +11,37 @@ const Dashboard = ({ user }) => {
   const navigate = useNavigate();
   const [activity, setActivity] = useState([]);
   const [data, setData] = useState({});
+  const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  // ----- DUMMY DATA FOR FRONTEND TESTING -----
   useEffect(() => {
-    // if (!user?.studentId) return;
-    // setLoading(true);
-    // Promise.all([
-    //   fetch(`http://localhost:5000/api/dashboard/${user.studentId}`).then(r => r.json()),
-    //   fetch(`http://localhost:5000/api/activity/${user.studentId}`).then(r => r.json())
-    // ])
-    //   .then(([stats, act]) => {
-    //     setData(stats);
-    //     setActivity(act);
-    //     setLoading(false);
-    //   })
-    //   .catch(err => {
-    //     console.error('Dashboard fetch error:', err);
-    //     setError(err.message);
-    //     setLoading(false);
-    //   });
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-    setData({
-      name: 'Suganya R',
-      department: 'B.E. CSE',
-      semester: 'Semester VI',
-      totalIssued: 3,
-      dueSoon: 1,
-      totalFine: 25,
-      pendingReqs: 2,
-      selectedLibrary: 'Main Library',
-      libraryFocus: 'Main Library',
-    });
-    setActivity([
-      { type: 'issue', title: 'Issued: Code Complete', sub: 'Main Library', date: '2025-03-12' },
-      { type: 'return', title: 'Returned: Clean Code', sub: 'Dept. Library', date: '2025-03-08' },
-      { type: 'overdue', title: 'Overdue: Design Patterns', sub: 'Due 2025-03-01', date: '2025-03-01' },
-      { type: 'request', title: 'Requested: The Pragmatic Programmer', sub: 'Pending', date: '2025-03-15' },
-    ]);
-    setLoading(false);
+  useEffect(() => {
+    const loggedInUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const studentId = user?.studentId || loggedInUser.studentId || '921021205001';
+
+    setLoading(true);
+    Promise.all([
+      fetch(`/api/dashboard/${studentId}`).then(r => r.json()),
+      fetch(`/api/activity/${studentId}`).then(r => r.json()),
+      fetch(`/api/requests/${studentId}`).then(r => r.json())
+    ])
+      .then(([stats, act, reqs]) => {
+        setData(stats);
+        setActivity(act);
+        setRequests(Array.isArray(reqs) ? reqs : []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Dashboard fetch error:', err);
+        setError(err.message);
+        setLoading(false);
+      });
   }, [user?.studentId]);
 
   const activityIconMap = {
@@ -78,121 +70,162 @@ const Dashboard = ({ user }) => {
     );
   }
 
+
+
   const d = data || {};
   const displayName = user?.name || d.name || 'Student';
 
   const statsCards = [
     {
-      label: 'Total Books Issued',
-      value: d.totalIssued,
+      title: 'Books Borrowed',
+      value: d.totalIssued || 0,
+      sub: 'ACTIVE BORROWINGS',
       icon: BookOpen,
-      iconColor: 'white',
-      iconBg: 'var(--secondary-color)',
-      accent: 'var(--secondary-color)',
-      circlePos: { top: -20, right: -20 }
+      iconColor: 'var(--secondary-color)',
+      iconBg: 'rgba(1, 137, 141, 0.08)',
+      border: 'var(--secondary-color)',
     },
     {
-      label: 'Books Due Soon',
-      value: d.dueSoon,
-      icon: Clock,
-      iconColor: 'white',
-      iconBg: 'var(--primary-color)',
-      accent: 'var(--primary-color)',
-      circlePos: { bottom: -40, right: 30 }
+      title: 'Overdue Books',
+      value: d.dueSoon || 0,
+      sub: 'IMMEDIATE ATTENTION',
+      icon: AlertCircle,
+      iconColor: 'var(--primary-color)',
+      iconBg: 'rgba(121, 12, 12, 0.08)',
+      border: 'var(--primary-color)',
     },
     {
-      label: 'Total Fine (₹)',
-      value: `₹${d.totalFine}`,
+      title: 'TOTAL FINE (₹)',
+      value: d.totalFine || 0,
+      sub: 'OUTSTANDING DUES',
       icon: DollarSign,
-      iconColor: 'white',
-      iconBg: 'var(--primary-color)',
-      accent: 'var(--primary-color)',
-      circlePos: { top: 10, left: -30 }
+      iconColor: 'var(--primary-color)',
+      iconBg: 'rgba(121, 12, 12, 0.08)',
+      border: 'var(--primary-color)',
+      isCurrency: true
     },
     {
-      label: 'Pending Requests',
-      value: d.pendingReqs,
+      title: 'PENDING REQUESTS',
+      value: d.pendingReqs || 0,
+      sub: 'AWAITING APPROVAL',
       icon: Bookmark,
-      iconColor: 'white',
-      iconBg: 'var(--secondary-color)',
-      accent: 'var(--secondary-color)',
-      circlePos: { bottom: -30, left: -20 }
+      iconColor: 'var(--secondary-color)',
+      iconBg: 'rgba(1, 137, 141, 0.08)',
+      border: 'var(--secondary-color)',
     },
   ];
 
   return (
-    <div className="animate-fade-in">
-      {/* Welcome Header */}
-      <div style={{ marginBottom: 28 }}>
-        <h2 style={{ fontSize: '1.9rem', fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Playfair Display', serif" }}>
-          Welcome back, {displayName.split(' ')[0]} 👋
-        </h2>
-        <p style={{ color: 'var(--text-secondary)', marginTop: 4, fontSize: '0.95rem' }}>
-          {d.department} &bull; {d.semester} &bull; {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-        </p>
-      </div>
+    <div className="animate-fade-in" style={{ padding: '0 8px' }}>
+      {/* Header Section with Date/Time */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 40 }}>
+        <div>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Playfair Display', serif", marginBottom: 6 }}>
+            Library Dashboard
+          </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>
+            Welcome back, {displayName.split(' ')[0]}! Here's your LMS overview.
+          </p>
+        </div>
 
-      {/* Library Banner */}
-      <div style={{
-        background: 'linear-gradient(135deg, var(--primary-color) 0%, #a01010 100%)',
-        borderRadius: 'var(--radius-lg)',
-        padding: '24px 28px',
-        marginBottom: 28,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        boxShadow: '0 4px 20px rgba(121,12,12,0.25)',
-        flexWrap: 'wrap',
-        gap: 16,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 48, height: 48, background: 'rgba(255,255,255,0.15)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <MapPin size={22} color="white" />
+        <div style={{
+          background: 'white',
+          borderRadius: 16,
+          padding: '12px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 20,
+          boxShadow: '0 4px 15px rgba(0,0,0,0.03)',
+          border: '1px solid var(--border-light)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-primary)', fontWeight: 600 }}>
+            <Calendar size={18} color="var(--primary-color)" />
+            <span>{currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).replace(/,/g, '')}</span>
           </div>
-          <div>
-            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.82rem', fontWeight: 500, marginBottom: 4 }}>Currently Browsing</p>
-            <h3 style={{ color: 'white', fontSize: '1.2rem', fontWeight: 700, fontFamily: "'Playfair Display', serif" }}>
-              {d.libraryFocus || 'Main Library'}
-            </h3>
+          <div style={{ width: 1, height: 24, background: 'var(--border-light)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-primary)', fontWeight: 600 }}>
+            <Clock size={18} color="var(--secondary-color)" />
+            <span>{currentTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}</span>
           </div>
         </div>
-        <button
-          className="btn"
-          onClick={() => navigate('/student/selection')}
-          style={{ background: 'rgba(255,255,255,0.15)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(4px)' }}
-          id="switch-library-btn"
-        >
-          Switch Library <ArrowRight size={16} />
-        </button>
       </div>
 
+      {/* Reservation Request Status Banner */}
+      {requests.filter(r => r.status === 'Approved').length > 0 && (
+        <div style={{
+          background: 'linear-gradient(135deg, #10b981, #059669)',
+          borderRadius: 16,
+          padding: '16px 24px',
+          marginBottom: 24,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+          color: 'white',
+          boxShadow: '0 4px 15px rgba(16, 185, 129, 0.2)',
+          borderLeft: '6px solid #047857'
+        }}>
+          <CheckCircle size={24} style={{ flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <p style={{ fontWeight: 700, fontSize: '1rem', margin: 0 }}>Your book reservation has been approved.</p>
+            <p style={{ fontSize: '0.85rem', opacity: 0.9, margin: '4px 0 0' }}>
+              Reserved Book: Accepted — {requests.filter(r => r.status === 'Approved').map(r => `"${r.bookName}"`).join(', ')}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {requests.filter(r => r.status === 'Approved').length === 0 && requests.filter(r => r.status === 'Pending').length > 0 && (
+        <div style={{
+          background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+          borderRadius: 16,
+          padding: '16px 24px',
+          marginBottom: 24,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+          color: 'white',
+          boxShadow: '0 4px 15px rgba(245, 158, 11, 0.2)',
+          borderLeft: '6px solid #b45309'
+        }}>
+          <AlertCircle size={24} style={{ flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <p style={{ fontWeight: 700, fontSize: '1rem', margin: 0 }}>Book Reservation Request: Pending</p>
+            <p style={{ fontSize: '0.85rem', opacity: 0.9, margin: '4px 0 0' }}>
+              Pending reservation for {requests.filter(r => r.status === 'Pending').map(r => `"${r.bookName}"`).join(', ')}. Waiting for admin approval.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Stats Grid */}
-      <div className="grid-cards">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24, marginBottom: 40 }}>
         {statsCards.map((card, i) => {
           const Icon = card.icon;
           return (
-            <div key={i} className="stat-card" style={{ position: 'relative', overflow: 'hidden', marginBottom: 28 }}>
-              <div style={{
-                position: 'absolute',
-                ...card.circlePos,
-                width: 120,
-                height: 120,
-                borderRadius: '50%',
-                background: card.accent,
-                opacity: 0.07,
-                zIndex: 0
-              }} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
-                <div className="stat-icon" style={{ background: card.iconBg }}>
-                  <Icon size={20} color={card.iconColor} />
+            <div key={i} style={{
+              background: 'white',
+              borderRadius: 16,
+              padding: '24px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
+              border: '1px solid var(--border-light)',
+              borderLeft: `5px solid ${card.border}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+              <div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 8 }}>
+                  {card.title}
                 </div>
-                <TrendingUp size={16} color="var(--text-muted)" />
+                <div style={{ fontSize: '2.4rem', fontWeight: 800, color: '#790c0c', lineHeight: 1, marginBottom: 12 }}>
+                  {card.isCurrency && '₹'} {card.value}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  {card.sub}
+                </div>
               </div>
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <div className="stat-label">{card.label}</div>
-                <div className={`stat-value`} style={{ fontSize: card.valueSmall ? '1.3rem' : '2rem', marginTop: 6 }}>
-                  {card.value}
-                </div>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: card.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon size={26} color={card.iconColor} />
               </div>
             </div>
           );
@@ -205,7 +238,7 @@ const Dashboard = ({ user }) => {
         <div className="panel">
           <div className="panel-header">
             <h3 className="panel-title">Recent Activity</h3>
-            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/student/history')}>
+            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/student/issued')}>
               View All <ArrowRight size={14} />
             </button>
           </div>
@@ -259,8 +292,8 @@ const Dashboard = ({ user }) => {
           <div style={{ padding: '8px 24px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
               { label: 'Search for a Book', icon: BookOpen, path: '/student/search', color: 'var(--secondary-color)', bg: 'rgba(1,137,141,0.08)' },
-              { label: 'View Issued Books', icon: Clock, path: '/student/issued', color: 'var(--primary-color)', bg: 'rgba(121,12,12,0.08)' },
-              { label: 'Pay Outstanding Fine', icon: DollarSign, path: '/student/fines', color: 'var(--primary-color)', bg: 'rgba(121,12,12,0.08)' },
+              { label: 'View Issued Books', icon: Clock, path: '/student/issued', color: 'var(--primary-color)', bg: 'rgba(121, 12, 12, 0.08)' },
+              { label: 'Pay Outstanding Fine', icon: DollarSign, path: '/student/fines', color: 'var(--primary-color)', bg: 'rgba(121, 12, 12, 0.08)' },
               { label: 'Track Requests', icon: Bookmark, path: '/student/requests', color: 'var(--secondary-color)', bg: 'rgba(1,137,141,0.08)' },
               { label: 'Renew Books', icon: RefreshCw, path: '/student/issued', color: 'var(--primary-color)', bg: 'rgba(121,12,12,0.08)' },
             ].map((action, i) => {
@@ -285,8 +318,16 @@ const Dashboard = ({ user }) => {
                     fontWeight: 500,
                     color: 'var(--text-primary)',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = action.bg; e.currentTarget.style.borderColor = action.color; e.currentTarget.style.transform = 'translateX(4px)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = '#f8f9fb'; e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.transform = 'none'; }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = action.bg;
+                    e.currentTarget.style.borderColor = action.color;
+                    e.currentTarget.style.transform = 'translateX(4px)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = '#f8f9fb';
+                    e.currentTarget.style.borderColor = 'var(--border-light)';
+                    e.currentTarget.style.transform = 'none';
+                  }}
                 >
                   <div style={{ width: 36, height: 36, background: action.bg, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Icon size={16} color={action.color} />

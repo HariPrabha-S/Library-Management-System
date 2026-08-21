@@ -4,9 +4,13 @@ import {
   Trash2, ExternalLink, Calendar, User, CheckCircle, 
   AlertCircle, Upload, ArrowRight
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const FacultyJournals = ({ user }) => {
+  const navigate = useNavigate();
   const [works, setWorks] = useState([]);
+  const [pendingSubmissions, setPendingSubmissions] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -22,19 +26,48 @@ const FacultyJournals = ({ user }) => {
 
   useEffect(() => {
     fetchMyWorks();
+    fetchMySubmissions();
   }, [user]);
 
+  const normalizeResource = (resource) => ({
+    id: resource.id || resource.digital_resource_id,
+    title: resource.title || '',
+    type: resource.type || resource.resource_type || 'Research Paper',
+    subject: resource.description || '',
+    link: resource.file_url || resource.fileUrl || resource.file_path || resource.filePath || '',
+    author: resource.author || resource.uploaded_by?.name || user?.name || '',
+    addedDate: resource.created_at || resource.createdAt || new Date().toISOString(),
+    approvalStatus: resource.approval_status || resource.approvalStatus || 'Pending'
+  });
+
+  // Fetch published works (only approved)
   const fetchMyWorks = async () => {
-    if (!user?.facultyId) return;
+    if (!user?.facultyId) {
+      setWorks([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5001/api/resources?uploadedBy=${user.facultyId}`);
+      const res = await fetch(`/api/resources?uploadedBy=${encodeURIComponent(user.facultyId)}`);
       const data = await res.json();
-      setWorks(data);
+      setWorks(data.map(normalizeResource).filter(work => work.approvalStatus === 'Approved'));
     } catch (err) {
       console.error('Error fetching works:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMySubmissions = async () => {
+    if (!user?.facultyId) return;
+    try {
+      const res = await fetch(`/api/resources?uploadedBy=${user.facultyId}`);
+      const data = await res.json();
+      setPendingSubmissions(data.map(normalizeResource));
+    } catch (err) {
+      console.error('Error fetching submissions:', err);
     }
   };
 
@@ -49,18 +82,22 @@ const FacultyJournals = ({ user }) => {
     setMessage({ text: '', type: '' });
 
     try {
-      const res = await fetch('http://localhost:5001/api/resources/add', {
+      const res = await fetch('/api/resources/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          uploadedBy: user.facultyId
-        })
+          body: JSON.stringify({
+            title: formData.title,
+            description: formData.subject || '',
+            resource_type: formData.type,
+            file_url: formData.link,
+            uploadedByFacultyEmployeeId: user.facultyId,
+            author: formData.author
+          })
       });
 
       const data = await res.json();
       if (res.ok) {
-        setMessage({ text: 'Work added successfully!', type: 'success' });
+        setMessage({ text: 'Resource submitted for admin approval.', type: 'success' });
         setFormData({
           title: '',
           type: 'Research Paper',
@@ -71,6 +108,7 @@ const FacultyJournals = ({ user }) => {
         });
         setTimeout(() => setShowModal(false), 1500);
         fetchMyWorks();
+        fetchMySubmissions();
       } else {
         setMessage({ text: data.message || 'Failed to add work', type: 'error' });
       }
@@ -90,6 +128,12 @@ const FacultyJournals = ({ user }) => {
       default: return <FileText size={18} />;
     }
   };
+
+  const filteredWorks = works.filter((work) =>
+    work.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    work.type.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  const approvalQueue = pendingSubmissions.filter((item) => item.approvalStatus === 'Pending');
 
   return (
     <div className="animate-fade-in">
@@ -114,8 +158,8 @@ const FacultyJournals = ({ user }) => {
             <FileText color="var(--primary-color)" size={20} />
           </div>
           <div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{works.length}</div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 4 }}>Total Submissions</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{pendingSubmissions.length}</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 4 }}>My Submissions</div>
           </div>
         </div>
         <div className="stat-card" style={{ flexDirection: 'row', alignItems: 'center', padding: '16px 20px', gap: 16 }}>
@@ -132,8 +176,8 @@ const FacultyJournals = ({ user }) => {
             <CheckCircle color="#d97706" size={20} />
           </div>
           <div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>Published</div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 4 }}>Status</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{pendingSubmissions.filter(w => w.approvalStatus === 'Pending').length}</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 4 }}>Pending Approval</div>
           </div>
         </div>
       </div>
@@ -148,6 +192,8 @@ const FacultyJournals = ({ user }) => {
               type="text" 
               placeholder="Filter your works..." 
               className="form-control"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               style={{ paddingLeft: 34, height: 36, fontSize: '0.85rem', width: 220 }}
             />
           </div>
@@ -155,7 +201,7 @@ const FacultyJournals = ({ user }) => {
 
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>Loading your works...</div>
-        ) : works.length === 0 ? (
+        ) : filteredWorks.length === 0 ? (
           <div style={{ padding: 60, textAlign: 'center' }}>
             <div style={{ width: 64, height: 64, background: 'var(--bg-secondary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <FileText size={32} color="var(--text-muted)" />
@@ -177,7 +223,7 @@ const FacultyJournals = ({ user }) => {
                 </tr>
               </thead>
               <tbody>
-                {works.map((work) => (
+                {filteredWorks.map((work) => (
                   <tr key={work.id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -197,7 +243,7 @@ const FacultyJournals = ({ user }) => {
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button className="btn btn-icon" onClick={() => window.open(work.link, '_blank')} title="View Work">
+                        <button className="btn btn-icon" onClick={() => work.link && window.open(work.link, '_blank', 'noopener,noreferrer')} title="View Work" disabled={!work.link}>
                           <ExternalLink size={16} />
                         </button>
                         <button className="btn btn-icon" style={{ color: '#ef4444' }} title="Delete">
@@ -212,6 +258,7 @@ const FacultyJournals = ({ user }) => {
           </div>
         )}
       </div>
+
 
       {/* Modal */}
       {showModal && (
@@ -265,6 +312,7 @@ const FacultyJournals = ({ user }) => {
                     <option>Journal</option>
                     <option>E-Book</option>
                     <option>Video Lecture</option>
+                    <option>Other</option>
                   </select>
                 </div>
                 <div className="form-group">
@@ -287,13 +335,13 @@ const FacultyJournals = ({ user }) => {
               </div>
 
               <div className="form-group" style={{ marginBottom: 24 }}>
-                <label style={{ display: 'block', marginBottom: 8, fontSize: '0.9rem', fontWeight: 500 }}>External Link (PDF/URL)</label>
+                <label style={{ display: 'block', marginBottom: 8, fontSize: '0.9rem', fontWeight: 500 }}>External Link (PDF/URL)*</label>
                 <input 
-                  type="url" name="link"
+                  type="url" name="link" required
                   className="form-control" placeholder="https://doi.org/..."
                   value={formData.link} onChange={handleInputChange}
                 />
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>Optional: Provide a link to your paper or resource.</p>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>Provide a DOI, PDF, or hosted resource link for admin review.</p>
               </div>
 
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
@@ -317,10 +365,14 @@ const FacultyJournals = ({ user }) => {
           <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 8 }}>Impact the Next Generation</h3>
           <p style={{ opacity: 0.9, fontSize: '0.95rem', lineHeight: 1.6 }}>
             Your contributions help build our institution's digital knowledge hub. 
-            Uploaded works are immediately available for students and other faculty in the Digital Resources section.
+            Uploaded works are reviewed by the library admin before they appear in the Digital Resources section.
           </p>
         </div>
-        <button className="btn" style={{ background: 'white', color: 'var(--secondary-color)', fontWeight: 600 }}>
+        <button 
+          className="btn" 
+          style={{ background: 'white', color: 'var(--secondary-color)', fontWeight: 600 }}
+          onClick={() => navigate('/faculty/resources')}
+        >
           View Public Resources <ArrowRight size={18} style={{ marginLeft: 8 }} />
         </button>
       </div>

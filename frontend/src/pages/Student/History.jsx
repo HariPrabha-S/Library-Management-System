@@ -3,54 +3,57 @@ import { BookOpen, Clock, CheckCircle, DollarSign } from 'lucide-react';
 
 
 const tabs = [
-  { key: 'issued', label: 'Issued History', icon: BookOpen },
   { key: 'returned', label: 'Returned Books', icon: CheckCircle },
   { key: 'reservation', label: 'Reservation History', icon: Clock },
   { key: 'fines', label: 'Fine History', icon: DollarSign },
 ];
 
 const History = ({ user }) => {
-  const [activeTab, setActiveTab] = useState('issued');
+  const [activeTab, setActiveTab] = useState('returned');
   const [data, setData] = useState({ issued: [], returned: [], reservation: [], fines: [] });
   const [loading, setLoading] = useState(true);
 
-  // ----- DUMMY DATA FOR FRONTEND TESTING -----
   React.useEffect(() => {
-    // if (!user?.studentId) return;
-    // setLoading(true);
-    // fetch(`http://localhost:5000/api/history/${user.studentId}`)
-    //   .then(r => r.json())
-    //   .then(d => { 
-    //     const formatted = {
-    //       issued: (d.issued || []).map(r => ({ ...r, issueDate: r.issueDate ? new Date(r.issueDate).toISOString().split('T')[0] : '', dueDate: r.dueDate ? new Date(r.dueDate).toISOString().split('T')[0] : '' })),
-    //       returned: (d.returned || []).map(r => ({ ...r, issueDate: r.issueDate ? new Date(r.issueDate).toISOString().split('T')[0] : '', returnDate: r.returnDate ? new Date(r.returnDate).toISOString().split('T')[0] : '' })),
-    //       reservation: (d.reservation || []).map(r => ({ ...r, requestDate: r.requestDate ? new Date(r.requestDate).toISOString().split('T')[0] : '', resolvedDate: r.resolvedDate ? new Date(r.resolvedDate).toISOString().split('T')[0] : '' })),
-    //       fines: (d.fines || []).map(r => ({ ...r, paidDate: r.paidDate ? new Date(r.paidDate).toISOString().split('T')[0] : '' })),
-    //     };
-    //     setData(formatted); 
-    //     setLoading(false); 
-    //   })
-    //   .catch((err) => {
-    //     console.error('History fetch error:', err);
-    //     setLoading(false);
-    //   });
+    if (!user?.studentId) {
+      setData({ issued: [], returned: [], reservation: [], fines: [] });
+      setLoading(false);
+      return;
+    }
 
-    const dummyData = {
-      issued: [
-        { id: 1, title: 'Code Complete', author: 'Steve McConnell', issueDate: '2025-03-12', dueDate: '2025-03-26', library: 'Main' }
-      ],
-      returned: [
-        { id: 2, title: 'Clean Code', author: 'Robert C. Martin', issueDate: '2025-02-15', returnDate: '2025-03-08', fineAmount: 0, status: 'On Time' }
-      ],
-      reservation: [
-        { id: 3, bookName: 'The Pragmatic Programmer', requestDate: '2025-03-15', resolvedDate: '', status: 'Pending' }
-      ],
-      fines: [
-        { id: 4, title: 'Database Systems', daysOverdue: 2, totalFine: 10, paidDate: '2025-01-20', status: 'Paid' }
-      ]
-    };
-    setData(dummyData);
-    setLoading(false);
+    setLoading(true);
+    fetch(`/api/history/${encodeURIComponent(user.studentId)}`)
+      .then(r => {
+        if (!r.ok) throw new Error('Unable to load history');
+        return r.json();
+      })
+      .then((issues) => {
+        const formattedIssued = issues.filter(i => i.status !== 'Returned').map(i => ({
+          id: i.id,
+          title: i.title || i.Book?.title || 'Unknown Book',
+          author: i.Book?.author || 'Unknown Author',
+          issueDate: i.issueDate ? new Date(i.issueDate).toISOString().split('T')[0] : '',
+          dueDate: i.returnDate ? new Date(i.returnDate).toISOString().split('T')[0] : '',
+          library: 'Main'
+        }));
+
+        const formattedReturned = issues.filter(i => i.status === 'Returned').map(i => ({
+          id: i.id,
+          title: i.title || i.Book?.title || 'Unknown Book',
+          author: i.Book?.author || 'Unknown Author',
+          issueDate: i.issueDate ? new Date(i.issueDate).toISOString().split('T')[0] : '',
+          returnDate: i.actualReturnDate ? new Date(i.actualReturnDate).toISOString().split('T')[0] : '',
+          fineAmount: i.fineAmount || 0,
+          status: 'On Time'
+        }));
+
+        setData({ issued: formattedIssued, returned: formattedReturned, reservation: [], fines: [] });
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('History fetch error:', err);
+        setData({ issued: [], returned: [], reservation: [], fines: [] });
+        setLoading(false);
+      });
   }, [user?.studentId]);
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>Loading history...</div>;
@@ -107,36 +110,7 @@ const History = ({ user }) => {
 
       {/* Content */}
       <div className="panel">
-        {/* ===== ISSUED HISTORY ===== */}
-        {activeTab === 'issued' && (
-          <>
-            <div className="panel-header">
-              <h3 className="panel-title">Issued History</h3>
-              <span style={{ fontSize: '0.83rem', color: 'var(--text-muted)' }}>{historyDisplay.issued.length} records</span>
-            </div>
-            <div className="table-container">
-              <table className="modern-table">
-                <thead><tr><th>Book Title</th><th>Author</th><th>Issue Date</th><th>Return Date</th><th>Library</th></tr></thead>
-                <tbody>
-                  {historyDisplay.issued.map(r => (
-                    <tr key={r._id || r.id}>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <BookOpen size={15} color="var(--text-muted)" />
-                          <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>{r.title}</span>
-                        </div>
-                      </td>
-                      <td style={{ color: 'var(--text-secondary)', fontSize: '0.87rem' }}>{r.author}</td>
-                      <td style={{ color: 'var(--text-secondary)', fontSize: '0.87rem' }}>{r.issueDate}</td>
-                      <td style={{ color: 'var(--text-secondary)', fontSize: '0.87rem' }}>{r.dueDate || r.returnDate}</td>
-                      <td><span className={r.library === 'Main' ? 'badge badge-primary' : 'badge badge-secondary'}>{r.library}</span></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
+
 
         {/* ===== RETURNED BOOKS ===== */}
         {activeTab === 'returned' && (
@@ -222,7 +196,7 @@ const History = ({ user }) => {
                       <td>
                         {r.status === 'Paid'
                           ? <span className="badge badge-success"><CheckCircle size={11} /> Paid</span>
-                          : <span className="badge badge-warning"><Clock size={11} /> Unpaid</span>
+                          : <span className="badge badge-warning"><Clock size={11} /> Pending</span>
                         }
                       </td>
                     </tr>

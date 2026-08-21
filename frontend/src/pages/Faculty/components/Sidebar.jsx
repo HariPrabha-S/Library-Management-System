@@ -19,15 +19,14 @@ import {
 
 const navItems = [
   { name: 'Dashboard', path: '/faculty/dashboard', icon: LayoutDashboard },
-  { name: 'Library Selection', path: '/faculty/selection', icon: Library },
+  { name: 'Profile', path: '/faculty/profile', icon: User },
   { name: 'Search Books', path: '/faculty/search', icon: Search },
-  { name: 'My Issued Books', path: '/faculty/issued', icon: BookMarked },
+  { name: 'My Accessed Books', path: '/faculty/issued', icon: BookMarked },
   { name: 'Faculty Journals', path: '/faculty/journals', icon: FileEdit },
   { name: 'Digital Resources', path: '/faculty/resources', icon: Globe },
   { name: 'Fine Management', path: '/faculty/fines', icon: BadgeDollarSign },
   { name: 'Reservations', path: '/faculty/requests', icon: ClipboardList },
   { name: 'History', path: '/faculty/history', icon: History },
-  { name: 'Profile', path: '/faculty/profile', icon: User },
 ];
 
 const Sidebar = ({ onLogout, collapsed, setCollapsed, mobileOpen = false, setMobileOpen = () => { } }) => {

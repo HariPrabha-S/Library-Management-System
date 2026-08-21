@@ -32,9 +32,6 @@ export default function ManageRequests() {
             if (action === "approve") {
                 await adminService.approveRequest(id);
                 alert("Request approved successfully!");
-            } else if (action === "revert") {
-                await adminService.revertRequest(id);
-                alert("Request moved back to pending.");
             } else if (action === "delete") {
                 if (window.confirm("Delete this request permanently?")) {
                     await adminService.deleteRequest(id);
@@ -168,21 +165,13 @@ export default function ManageRequests() {
                                                         </button>
                                                     </>
                                                 ) : (
-                                                    <>
-                                                        <button
-                                                            onClick={() => handleAction(req.id, "revert")}
-                                                            className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-all font-bold text-[10px] uppercase flex items-center gap-1"
-                                                        >
-                                                            <FiArrowRight size={12} className="rotate-180" /> Revert to Pending
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleAction(req.id, "delete")}
-                                                            className="p-1 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded ml-2"
-                                                            title="Delete Permanently"
-                                                        >
-                                                            <FiXCircle size={16} />
-                                                        </button>
-                                                    </>
+                                                    <button
+                                                        onClick={() => handleAction(req.id, "delete")}
+                                                        className="p-1 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded ml-2"
+                                                        title="Delete Permanently"
+                                                    >
+                                                        <FiXCircle size={16} />
+                                                    </button>
                                                 )}
                                             </div>
                                         </td>

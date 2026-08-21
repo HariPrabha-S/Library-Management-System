@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const controller = require('../../controllers/admin/adminStudentController');
 
+router.get('/batches', controller.getBatches);
 router.get('/', controller.getStudents);
 router.post('/', controller.addStudent);
+router.put('/bulk-update-academic', controller.bulkUpdateAcademic);
 router.put('/:id', controller.editStudent);
 router.delete('/bulk', controller.bulkDelete);
 router.delete('/:id', controller.deleteStudent);

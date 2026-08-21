@@ -1,59 +1,73 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, AlertCircle, CheckCircle, Clock, BookOpen, CreditCard } from 'lucide-react';
+import { DollarSign, AlertCircle, CheckCircle, Clock, BookOpen, Info } from 'lucide-react';
 
 
 const FineManagement = ({ user }) => {
   const [data, setData] = useState({ details: [], history: [], totalFine: 0, paidFine: 0, unpaidFine: 0 });
   const [loading, setLoading] = useState(true);
-  const [paidIds, setPaidIds] = useState([]);
 
-  // ----- DUMMY DATA FOR FRONTEND TESTING -----
   const fetchFines = () => {
-    // if (!user?.studentId) return;
-    // setLoading(true);
-    // fetch(`http://localhost:5000/api/fines/${user.studentId}`)
-    //   .then(r => r.json())
-    //   .then(d => { setData(d); setLoading(false); })
-    //   .catch((err) => { console.error(err); setLoading(false); });
+    if (!user?.studentId) {
+      setData({ details: [], history: [], totalFine: 0, paidFine: 0, unpaidFine: 0 });
+      setLoading(false);
+      return;
+    }
 
-    const dummyData = {
-      totalFine: 25,
-      paidFine: 0,
-      unpaidFine: 25,
-      details: [
-        { id: 1, title: 'Design Patterns', daysOverdue: 5, finePerDay: 5, totalFine: 25, status: 'Unpaid' }
-      ],
-      history: [
-        { id: 2, title: 'Clean Architecture', totalFine: 15, paidDate: '2025-02-10', status: 'Paid' }
-      ]
-    };
-    setData(dummyData);
-    setLoading(false);
+    setLoading(true);
+    fetch(`/api/borrowing-info/${encodeURIComponent(user.studentId)}`)
+      .then(r => {
+        if (!r.ok) throw new Error('Unable to load fine information');
+        return r.json();
+      })
+      .then((result) => {
+        const fineRecords = Array.isArray(result.fines) ? result.fines : [];
+        const details = fineRecords.filter(f => f.status !== 'Paid').map(f => {
+          const reason = f.reason || '';
+          const isLost = reason.toLowerCase().startsWith('lost book');
+          // Extract overdue days from reason like "Late Return - 5 days"
+          let daysOverdue = 0;
+          if (!isLost) {
+            const match = reason.match(/(\d+)\s*days?/i);
+            if (match) daysOverdue = parseInt(match[1], 10);
+          }
+          return {
+            id: f.id,
+            title: f.Issue?.Book?.title || f.title || 'Unknown Book',
+            reason,
+            isLost,
+            daysOverdue,
+            finePerDay: isLost ? null : 1,
+            totalFine: parseFloat(f.amount || 0),
+            status: f.status || 'Pending'
+          };
+        });
+        const history = fineRecords.filter(f => f.status === 'Paid').map(f => ({
+          id: f.id,
+          title: f.Issue?.Book?.title || f.title || 'Unknown Book',
+          reason: f.reason || '',
+          totalFine: parseFloat(f.amount || 0),
+          paidDate: f.updatedAt ? new Date(f.updatedAt).toISOString().split('T')[0] : '',
+          status: 'Paid'
+        }));
+
+        const totalFine = details.reduce((sum, fine) => sum + fine.totalFine, 0);
+        const paidFine = history.reduce((sum, fine) => sum + fine.totalFine, 0);
+
+        setData({ totalFine, paidFine, unpaidFine: totalFine, details, history });
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Fine fetch error:', err);
+        setData({ details: [], history: [], totalFine: 0, paidFine: 0, unpaidFine: 0 });
+        setLoading(false);
+      });
   };
 
   useEffect(() => {
     fetchFines();
   }, [user?.studentId]);
 
-  const handlePay = (fineId, amount) => {
-    // fetch('http://localhost:5000/api/fines/pay', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ fineId }),
-    // })
-    // .then(r => r.json())
-    // .then(() => {
-    //   setPaidIds(prev => [...prev, fineId]);
-    //   alert('Payment successful!');
-    //   fetchFines(); // Refresh to update summary cards
-    // })
-    // .catch(() => alert('Payment failed.'));
-
-    setPaidIds(prev => [...prev, fineId]);
-    alert('Payment successful! (Dummy)');
-  };
-
-  const unpaidFines = data.details?.filter(f => f.status === 'Unpaid' && !paidIds.includes(f.id)) || [];
+  const unpaidFines = data.details?.filter(f => f.status === 'Pending') || [];
   const effectiveTotal = unpaidFines.reduce((sum, f) => sum + parseFloat(f.totalFine), 0);
 
   return (
@@ -62,9 +76,9 @@ const FineManagement = ({ user }) => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
         {[
           { label: 'Total Fine', value: `₹${data.totalFine}`, icon: DollarSign, color: 'var(--danger)', bg: 'var(--danger-light)' },
-          { label: 'Unpaid', value: `₹${effectiveTotal}`, icon: AlertCircle, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+          { label: 'Pending', value: `₹${effectiveTotal}`, icon: AlertCircle, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
           { label: 'Paid', value: `₹${data.paidFine}`, icon: CheckCircle, color: 'var(--success)', bg: 'var(--success-light)' },
-          { label: 'Overdue Books', value: data.details?.filter(f => f.status === 'Unpaid').length || 0, icon: BookOpen, color: 'var(--primary-color)', bg: 'var(--primary-light)' },
+          { label: 'Pending Fines', value: unpaidFines.length, icon: BookOpen, color: 'var(--primary-color)', bg: 'var(--primary-light)' },
         ].map((c, i) => {
           const Icon = c.icon;
           return (
@@ -81,7 +95,7 @@ const FineManagement = ({ user }) => {
         })}
       </div>
 
-      {/* Pay all banner */}
+      {/* Outstanding balance info banner (view-only, no pay button) */}
       {unpaidFines.length > 0 && (
         <div style={{
           background: 'linear-gradient(135deg, #790c0c, #a01010)',
@@ -99,78 +113,55 @@ const FineManagement = ({ user }) => {
             <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.85rem', fontWeight: 500, marginBottom: 4 }}>Outstanding Balance</p>
             <h3 style={{ color: 'white', fontSize: '2rem', fontWeight: 700, fontFamily: "'Inter',sans-serif" }}>₹{effectiveTotal}</h3>
           </div>
-          <button
-            className="btn"
-            style={{ background: 'rgba(255,255,255,0.18)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(4px)', fontSize: '0.95rem', padding: '12px 28px' }}
-            onClick={() => alert('Redirecting to payment gateway...')}
-            id="pay-all-fines-btn"
-          >
-            <CreditCard size={18} /> Pay All Fines
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.12)', padding: '10px 18px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)' }}>
+            <Info size={16} color="rgba(255,255,255,0.8)" />
+            <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.85rem', fontWeight: 500 }}>Contact library admin to clear fines</span>
+          </div>
         </div>
       )}
 
-      {/* Overdue Details Table */}
+      {/* Fine Details Table (view-only) */}
       <div className="panel" style={{ marginBottom: 24 }}>
         <div className="panel-header">
-          <h3 className="panel-title">Overdue Fine Details</h3>
+          <h3 className="panel-title">Fine Details</h3>
         </div>
         <div className="table-container">
           <table className="modern-table">
             <thead>
               <tr>
                 <th>Book Title</th>
-                <th>Days Overdue</th>
-                <th>Fine / Day</th>
+                <th>Reason</th>
                 <th>Total Fine</th>
                 <th>Status</th>
-                <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {data.details?.map((fine) => {
-                const isPaid = paidIds.includes(fine.id) || fine.status === 'Paid';
-                return (
-                  <tr key={fine.id}>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <BookOpen size={15} color="var(--text-muted)" />
-                        <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>{fine.title}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <span style={{ color: 'var(--danger)', fontWeight: 600, fontSize: '0.9rem' }}>
-                        {fine.daysOverdue} days
-                      </span>
-                    </td>
-                    <td style={{ color: 'var(--text-secondary)', fontSize: '0.87rem' }}>₹{fine.finePerDay || '5.00'}/day</td>
-                    <td>
-                      <span style={{ fontWeight: 700, color: 'var(--danger)', fontSize: '0.95rem' }}>₹{fine.totalFine}</span>
-                    </td>
-                    <td>
-                      {isPaid ? (
-                        <span className="badge badge-success"><CheckCircle size={12} /> Paid</span>
-                      ) : (
-                        <span className="badge badge-warning"><Clock size={12} /> Unpaid</span>
-                      )}
-                    </td>
-                    <td>
-                      <button
-                        className="btn btn-sm btn-primary"
-                        disabled={isPaid}
-                        style={{ opacity: isPaid ? 0.5 : 1, cursor: isPaid ? 'not-allowed' : 'pointer' }}
-                        onClick={() => handlePay(fine.id, fine.totalFine)}
-                        id={`pay-fine-btn-${fine.id}`}
-                      >
-                        {isPaid ? '✓ Paid' : `Pay ₹${fine.totalFine}`}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+              {data.details?.map((fine) => (
+                <tr key={fine.id}>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <BookOpen size={15} color="var(--text-muted)" />
+                      <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>{fine.title}</span>
+                    </div>
+                  </td>
+                  <td style={{ color: 'var(--text-secondary)', fontSize: '0.87rem' }}>
+                    {fine.isLost ? (
+                      <span style={{ color: 'var(--danger)', fontWeight: 600 }}>Lost Book (3× price)</span>
+                    ) : (
+                      <span>{fine.daysOverdue} day{fine.daysOverdue !== 1 ? 's' : ''} overdue × ₹1/day</span>
+                    )}
+                  </td>
+                  <td>
+                    <span style={{ fontWeight: 700, color: 'var(--danger)', fontSize: '0.95rem' }}>₹{fine.totalFine}</span>
+                  </td>
+                  <td>
+                    <span className="badge badge-warning"><Clock size={12} /> Pending</span>
+                  </td>
+                </tr>
+              ))}
               {(!data.details || data.details.length === 0) && (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                  <td colSpan={4} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                     <CheckCircle size={28} color="var(--success)" style={{ margin: '0 auto 8px', display: 'block' }} />
                     No outstanding fines!
                   </td>
@@ -190,12 +181,13 @@ const FineManagement = ({ user }) => {
           <div className="table-container">
             <table className="modern-table">
               <thead>
-                <tr><th>Book</th><th>Amount</th><th>Paid Date</th><th>Status</th></tr>
+                <tr><th>Book</th><th>Reason</th><th>Amount</th><th>Paid Date</th><th>Status</th></tr>
               </thead>
               <tbody>
                 {data.history.map(h => (
                   <tr key={h.id}>
                     <td style={{ fontWeight: 500, fontSize: '0.88rem' }}>{h.title}</td>
+                    <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{h.reason}</td>
                     <td style={{ color: 'var(--success)', fontWeight: 600 }}>₹{h.totalFine}</td>
                     <td style={{ color: 'var(--text-secondary)', fontSize: '0.87rem' }}>{h.paidDate}</td>
                     <td><span className="badge badge-success"><CheckCircle size={11} /> Paid</span></td>

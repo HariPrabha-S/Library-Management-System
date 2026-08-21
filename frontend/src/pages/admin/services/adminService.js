@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api/admin';
+const API_URL = '/api/admin';
 
 const request = async (url, options = {}) => {
     const { params, ...rest } = options;
@@ -25,12 +25,21 @@ const request = async (url, options = {}) => {
         },
     });
 
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `Request failed with status ${response.status}`);
+    const contentType = response.headers.get('content-type') || '';
+    let payload = null;
+
+    if (contentType.includes('application/json')) {
+        payload = await response.json().catch(() => null);
+    } else {
+        payload = await response.text().catch(() => '');
     }
 
-    return response.json();
+    if (!response.ok) {
+        const message = payload?.message || payload?.error || (typeof payload === 'string' && payload) || `Request failed with status ${response.status}`;
+        throw new Error(message);
+    }
+
+    return payload ?? {};
 };
 
 const adminService = {
@@ -38,14 +47,8 @@ const adminService = {
     getDashboardStats: async () => {
         return request(`${API_URL}/dashboard/stats`);
     },
-    getOverdueQueue: async () => {
-        return request(`${API_URL}/dashboard/overdue`);
-    },
     getDashboardRequests: async () => {
         return request(`${API_URL}/dashboard/requests`);
-    },
-    getDashboardRecent: async () => {
-        return request(`${API_URL}/dashboard/recent`);
     },
 
     // Books Module
@@ -79,6 +82,27 @@ const adminService = {
             body: JSON.stringify({ books: booksData })
         });
     },
+    exportBooks: async (payload) => {
+        return fetch(`${API_URL}/books/export`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        });
+    },
+    getBookByAccession: async (accessionNo) => {
+        return request(`${API_URL}/books/accession/${accessionNo}`);
+    },
+    addCopies: async (id, data) => {
+        return request(`${API_URL}/books/${id}/copies`, {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    },
+    getBookCopies: async (id) => {
+        return request(`${API_URL}/books/${id}/copies`);
+    },
 
     // Students Module 
     getStudents: async (params) => {
@@ -109,6 +133,15 @@ const adminService = {
         return request(`${API_URL}/students/bulk-upload`, {
             method: 'POST',
             body: JSON.stringify({ students: studentsData })
+        });
+    },
+    getStudentBatches: async () => {
+        return request(`${API_URL}/students/batches`);
+    },
+    bulkUpdateStudentAcademic: async (data) => {
+        return request(`${API_URL}/students/bulk-update-academic`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
         });
     },
 
@@ -154,9 +187,6 @@ const adminService = {
     rejectRequest: async (id) => {
         return request(`${API_URL}/requests/reject/${id}`, { method: 'POST' });
     },
-    revertRequest: async (id) => {
-        return request(`${API_URL}/requests/revert/${id}`, { method: 'POST' });
-    },
 
     // Issues / Records Module
     getIssues: async (params) => {
@@ -168,11 +198,14 @@ const adminService = {
             body: JSON.stringify(data)
         });
     },
-    returnBook: async (id) => {
-        return request(`${API_URL}/issues/${id}/return`, { method: 'PUT' });
+    returnBook: async (id, data = {}) => {
+        return request(`${API_URL}/issues/${id}/return`, { method: 'PUT', body: JSON.stringify(data) });
     },
-    revertReturn: async (id) => {
-        return request(`${API_URL}/issues/${id}/revert`, { method: 'PUT' });
+    renewBook: async (id, data = {}) => {
+        return request(`${API_URL}/issues/${id}/renew`, { method: 'PUT', body: JSON.stringify(data) });
+    },
+    markBookLost: async (id, data = {}) => {
+        return request(`${API_URL}/issues/${id}/lost`, { method: 'PUT', body: JSON.stringify(data) });
     },
 
     // Fines (Manage Fines)
@@ -182,8 +215,23 @@ const adminService = {
     clearFine: async (id) => {
         return request(`${API_URL}/fines/${id}/clear`, { method: 'PUT' });
     },
-    revertFine: async (id) => {
-        return request(`${API_URL}/fines/${id}/revert`, { method: 'PUT' });
+
+    // Sub Entries / master data
+    getSubEntries: async (type) => request(`${API_URL}/subentries/${type}`),
+    getSubEntry: async (type, id) => request(`${API_URL}/subentries/${type}/${id}`),
+    addSubEntry: async (type, data) => request(`${API_URL}/subentries/${type}`, { method: 'POST', body: JSON.stringify(data) }),
+    editSubEntry: async (type, id, data) => request(`${API_URL}/subentries/${type}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteSubEntry: async (type, id) => request(`${API_URL}/subentries/${type}/${id}`, { method: 'DELETE' }),
+
+    // Profile Photo Upload
+    uploadProfilePhoto: async (formData) => {
+        const response = await fetch('/api/profile/upload-photo', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || 'Upload failed');
+        return data;
     }
 };
 

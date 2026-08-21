@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
-import { Bell, Search, Menu } from 'lucide-react';
+import React from 'react';
+import { Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Header = ({ title, subtitle, user, onMenuClick }) => {
-  const [searchVal, setSearchVal] = useState('');
   const navigate = useNavigate();
 
   const initials = user?.name
-    ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    ? user.name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
     : 'ST';
 
   return (
@@ -30,25 +34,6 @@ const Header = ({ title, subtitle, user, onMenuClick }) => {
 
       {/* Right Controls */}
       <div className="header-controls">
-        {/* Quick Search */}
-        <div className="header-search-wrap">
-          <Search size={16} className="header-search-icon" />
-          <input
-            type="text"
-            className="header-search"
-            placeholder="Quick search..."
-            value={searchVal}
-            onChange={(e) => setSearchVal(e.target.value)}
-            id="header-quick-search"
-          />
-        </div>
-
-        {/* Notification Bell */}
-        <button className="header-icon-btn" id="notification-bell" aria-label="Notifications">
-          <Bell size={20} />
-          <span className="notif-dot"></span>
-        </button>
-
         {/* User Avatar */}
         <div
           className="header-user"
@@ -56,8 +41,11 @@ const Header = ({ title, subtitle, user, onMenuClick }) => {
           style={{ cursor: 'pointer' }}
         >
           <div className="header-avatar">{initials}</div>
+
           <div className="header-user-info">
-            <span className="header-user-name">{user?.name || 'Student'}</span>
+            <span className="header-user-name">
+              {user?.name || 'Student'}
+            </span>
             <span className="header-user-role">Student</span>
           </div>
         </div>

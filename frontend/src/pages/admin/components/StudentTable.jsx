@@ -62,7 +62,7 @@ export default function StudentTable({ students, selectedStudents, onSelect, onD
                   {isColVisible('rollNo') && <td className={`py-4 px-3 text-gray-600 ${isPrintable ? "border border-gray-300 text-black" : ""}`}>{student.rollNo}</td>}
                   {isColVisible('department') && <td className={`py-4 px-3 text-gray-600 ${isPrintable ? "border border-gray-300 text-black" : ""}`}>{student.department}</td>}
                   {isColVisible('year') && <td className={`py-4 px-3 text-gray-600 ${isPrintable ? "border border-gray-300 text-black" : ""}`}>{student.year}</td>}
-                  {isColVisible('email') && <td className={`py-4 px-3 text-gray-600 ${isPrintable ? "border border-gray-300 text-black" : ""}`}>{student.email}</td>}
+                  {isColVisible('email') && <td className={`py-4 px-3 text-gray-600 ${isPrintable ? "border border-gray-300 text-black" : ""}`}>{student.email || "Not Provided"}</td>}
 
                   {isColVisible('totalBooks') && <td className={`py-4 px-3 text-center text-gray-600 ${isPrintable ? "border border-gray-300 text-black" : ""}`}>{student.totalBooks}</td>}
                   {isColVisible('issuedBooks') && <td className={`py-4 px-3 text-center text-gray-600 ${isPrintable ? "border border-gray-300 text-black" : ""}`}>{student.issuedBooks}</td>}
@@ -117,7 +117,7 @@ export default function StudentTable({ students, selectedStudents, onSelect, onD
                 </div>
                 <div>
                   <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Email Address</label>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{viewedStudent.email}</p>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{viewedStudent.email || "Not Provided"}</p>
                 </div>
                 <div>
                   <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Total Books Issued</label>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, RefreshCw, Upload, AlertCircle, CalendarDays } from 'lucide-react';
+import { BookOpen, AlertCircle, CalendarDays } from 'lucide-react';
 
 
 const IssuedBooks = ({ user }) => {
@@ -7,51 +7,33 @@ const IssuedBooks = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
 
-  // ----- DUMMY DATA FOR FRONTEND TESTING -----
   useEffect(() => {
-    // if (!user?.studentId) return;
-    // setLoading(true);
-    // fetch(`http://localhost:5000/api/records/${user.studentId}`)
-    //   .then(r => r.json())
-    //   .then(data => { 
-    //     const formattedData = data.map(b => ({
-    //       ...b,
-    //       issueDate: b.issueDate ? new Date(b.issueDate).toISOString().split('T')[0] : '',
-    //       dueDate: b.dueDate ? new Date(b.dueDate).toISOString().split('T')[0] : ''
-    //     }));
-    //     setBooks(formattedData); 
-    //     setLoading(false); 
-    //   })
-    //   .catch((err) => {
-    //     console.error('Records fetch error:', err);
-    //     setLoading(false);
-    //   });
+    const loggedInUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const studentId = user?.studentId || loggedInUser.studentId || '921021205001';
 
-    const dummyBooks = [
-      { id: 1, title: 'Code Complete', author: 'Steve McConnell', issueDate: '2025-03-12', dueDate: '2025-03-26', library: 'Main', status: 'Active', renewAllowed: true },
-      { id: 2, title: 'Design Patterns', author: 'Erich Gamma', issueDate: '2025-02-15', dueDate: '2025-03-01', library: 'Dept', status: 'Overdue', renewAllowed: false },
-    ];
-    setBooks(dummyBooks);
-    setLoading(false);
+    setLoading(true);
+    fetch(`/api/borrowing-info/${studentId}`)
+      .then(r => r.json())
+      .then(data => { 
+        const mapped = data.issues.filter(i => i.status !== 'Returned').map(i => ({
+          id: i.id,
+          title: i.Book ? i.Book.title : 'Unknown Book',
+          author: i.Book ? i.Book.author : 'Unknown Author',
+          issueDate: i.issueDate,
+          dueDate: i.returnDate,
+          library: 'Main',
+          status: i.status === 'Issued' ? 'Active' : i.status,
+          renewAllowed: i.status === 'Issued' || i.status === 'Overdue'
+        }));
+        setBooks(mapped); 
+        setLoading(false); 
+      })
+      .catch((err) => {
+        console.error('Records fetch error:', err);
+        setLoading(false);
+      });
   }, [user?.studentId]);
 
-  const handleRenew = (id) => {
-    // fetch(`http://localhost:5000/api/books/renew/${id}`, { method: 'POST' })
-    //   .then(r => {
-    //     if (!r.ok) return r.json().then(e => { throw new Error(e.message); });
-    //     return r.json();
-    //   })
-    //   .then(d => {
-    //     alert(d.message);
-    //     setBooks(prev => prev.map(b => b.id === id ? { ...b, dueDate: d.newDueDate, status: 'Active' } : b));
-    //   })
-    //   .catch((err) => {
-    //     alert(err.message || 'Renewal failed');
-    //   });
-
-    alert('Book renewed successfully (Dummy)');
-    setBooks(prev => prev.map(b => b.id === id ? { ...b, dueDate: '2025-04-10', status: 'Active' } : b));
-  };
 
   const summary = {
     total: books.length,
@@ -87,7 +69,7 @@ const IssuedBooks = ({ user }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 12, marginBottom: 20 }}>
           <AlertCircle size={18} color="var(--danger)" />
           <p style={{ color: '#b91c1c', fontSize: '0.88rem', fontWeight: 500 }}>
-            You have <strong>{summary.overdue}</strong> overdue book{summary.overdue > 1 ? 's' : ''}. Please return or renew immediately to avoid further fines.
+            You have <strong>{summary.overdue}</strong> overdue book{summary.overdue > 1 ? 's' : ''}. Please contact the library admin for return or renewal.
           </p>
         </div>
       )}
@@ -127,7 +109,6 @@ const IssuedBooks = ({ user }) => {
                   <th>Due Date</th>
                   <th>Library</th>
                   <th>Status</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -168,27 +149,7 @@ const IssuedBooks = ({ user }) => {
                         {book.status}
                       </span>
                     </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button
-                          className="btn btn-sm btn-outline"
-                          onClick={() => handleRenew(book.id)}
-                          disabled={!book.renewAllowed}
-                          style={{ opacity: book.renewAllowed ? 1 : 0.4, cursor: book.renewAllowed ? 'pointer' : 'not-allowed' }}
-                          title={book.renewAllowed ? 'Renew this book' : 'Renewal not allowed'}
-                          id={`renew-btn-${book.id}`}
-                        >
-                          <RefreshCw size={13} /> Renew
-                        </button>
-                        <button
-                          className="btn btn-sm btn-ghost"
-                          onClick={() => alert('Return request submitted. Please return the book to the library desk.')}
-                          id={`return-btn-${book.id}`}
-                        >
-                          <Upload size={13} /> Return
-                        </button>
-                      </div>
-                    </td>
+                    
                   </tr>
                 ))}
               </tbody>

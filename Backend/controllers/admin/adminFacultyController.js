@@ -1,6 +1,6 @@
-const { Faculty } = require('../../models/admin/adminModels');
+const { Faculty, Issue, Fine, Book, BookCopy } = require('../../models/admin/adminModels');
 const { sendSuccess, sendError } = require('../../utils/adminResponse');
-const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { Op } = require('sequelize');
 
 exports.getFaculties = async (req, res) => {
@@ -12,8 +12,10 @@ exports.getFaculties = async (req, res) => {
             whereClause = {
                 [Op.or]: [
                     { name: { [Op.like]: `%${search}%` } },
-                    { facultyId: { [Op.like]: `%${search}%` } },
-                    { employeeId: { [Op.like]: `%${search}%` } }
+                    { employeeId: { [Op.like]: `%${search}%` } },
+                    { email: { [Op.like]: `%${search}%` } },
+                    { department: { [Op.like]: `%${search}%` } },
+                    { departmentFull: { [Op.like]: `%${search}%` } }
                 ]
             };
         }
@@ -23,16 +25,39 @@ exports.getFaculties = async (req, res) => {
         }
 
         let order = [['name', 'ASC']];
-        if (sort === 'facultyId') order = [['facultyId', 'ASC']];
+        if (sort === 'facultyId' || sort === 'employeeId') order = [['employeeId', 'ASC']];
         if (sort === 'department') order = [['department', 'ASC']];
         if (sort === 'recent') order = [['createdAt', 'DESC']];
 
-        const faculties = await Faculty.findAll({ where: whereClause, order });
-        return sendSuccess(res, faculties, 'Faculties fetched successfully');
+        const faculties = await Faculty.findAll({
+            where: whereClause,
+            include: [
+                {
+                    model: Issue,
+                    include: [Book, BookCopy]
+                },
+                {
+                    model: Fine
+                }
+            ],
+            order
+        });
+
+        // Sanitize: replace password hash with a boolean flag (existing security policy)
+        const sanitizedFaculties = faculties.map(f => {
+            const plain = f.toJSON();
+            plain.hasPassword = !!plain.password;
+            delete plain.password;
+            return plain;
+        });
+
+        return sendSuccess(res, sanitizedFaculties, 'Faculties fetched successfully');
     } catch (error) {
+        console.error('Error fetching faculties:', error);
         return sendError(res, 'Error fetching faculties', 500);
     }
 };
+
 
 exports.addFaculty = async (req, res) => {
     try {
@@ -51,8 +76,8 @@ exports.addFaculty = async (req, res) => {
             return sendError(res, 'Faculty with this ID or Employee ID already exists', 400);
         }
 
-        const passwordPlain = facultyData.password || facultyData.facultyId;
-        const hashedPassword = await bcrypt.hash(passwordPlain, 10);
+        const passwordPlain = facultyData.password || 'NSCET123';
+        const hashedPassword = crypto.createHash('sha256').update(String(passwordPlain)).digest('hex');
 
         const newFaculty = await Faculty.create({
             ...facultyData,
@@ -73,7 +98,9 @@ exports.editFaculty = async (req, res) => {
         const updates = { ...req.body };
 
         if (updates.password) {
-            updates.password = await bcrypt.hash(updates.password, 10);
+            updates.password = crypto.createHash('sha256').update(String(updates.password)).digest('hex');
+        } else {
+            delete updates.password;
         }
 
         const [updatedRows] = await Faculty.update(updates, { where: { id } });
@@ -123,8 +150,8 @@ exports.bulkUpload = async (req, res) => {
         if (!faculties || !faculties.length) return sendError(res, 'No faculty data provided', 400);
 
         const hashedFaculties = await Promise.all(faculties.map(async (f) => {
-            const pwd = f.password || f.facultyId;
-            const hash = await bcrypt.hash(pwd, 10);
+            const pwd = f.password || 'NSCET123';
+            const hash = crypto.createHash('sha256').update(String(pwd)).digest('hex');
             return {
                 ...f,
                 password: hash

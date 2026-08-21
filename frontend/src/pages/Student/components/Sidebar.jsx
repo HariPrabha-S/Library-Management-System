@@ -6,6 +6,7 @@ import {
   BookMarked,
   BadgeDollarSign,
   ClipboardList,
+  History,
   User,
   LogOut,
   Globe,
@@ -17,13 +18,13 @@ import {
 
 const navItems = [
   { name: 'Dashboard', path: '/student/dashboard', icon: LayoutDashboard },
-  { name: 'Library Selection', path: '/student/selection', icon: Library },
-  { name: 'Search Books', path: '/student/search', icon: Search },
-  { name: 'My Borrowed Books', path: '/student/issued', icon: BookMarked },
-  { name: 'Department Library', path: '/student/department', icon: BookOpen },
-  { name: 'Digital Resources', path: '/student/resources', icon: Globe },
-  { name: 'Reservations', path: '/student/requests', icon: ClipboardList },
   { name: 'Profile', path: '/student/profile', icon: User },
+  { name: 'Search Books', path: '/student/search', icon: Search },
+  { name: 'My Accessed Books', path: '/student/issued', icon: BookMarked },
+  { name: 'Digital Resources', path: '/student/resources', icon: Globe },
+  { name: 'Fine Management', path: '/student/fines', icon: BadgeDollarSign },
+  { name: 'Reservations', path: '/student/requests', icon: ClipboardList },
+  { name: 'History', path: '/student/history', icon: History },
 ];
 
 const Sidebar = ({ onLogout, collapsed, setCollapsed, mobileOpen = false, setMobileOpen = () => { } }) => {
@@ -39,13 +40,13 @@ const Sidebar = ({ onLogout, collapsed, setCollapsed, mobileOpen = false, setMob
   return (
     <>
       <div className={`no-scrollbar sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
-        <div className="sidebar-brand">
-          <div className="brand-logo">
-            <BookOpen size={22} color="white" />
+        <div className="sidebar-brand" style={{ padding: '30px 24px' }}>
+          <div className="brand-logo" style={{ background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <BookOpen size={22} color="var(--primary-color)" />
           </div>
-          <div>
-            <div className="brand-name">LMS</div>
-            <div className="brand-tagline">Student Portal</div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div className="brand-name" style={{ fontSize: '1.4rem', marginBottom: 0 }}>LMS</div>
+            <div className="brand-tagline" style={{ marginTop: -2, color: 'rgba(255,255,255,0.7)' }}>Student Portal</div>
           </div>
         </div>
 

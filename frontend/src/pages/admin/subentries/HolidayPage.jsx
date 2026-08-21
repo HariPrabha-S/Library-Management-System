@@ -1,0 +1,3 @@
+import React from 'react';
+import MasterDataListPage from './components/MasterDataListPage';
+export default function HolidayPage() { return <MasterDataListPage type="holidays" formRoute="/admin/subentries/holiday/form" title="Holiday" description="Manage holiday entries for the library calendar." addButtonLabel="Add New Holiday" searchPlaceholder="Search holiday..." emptyMessage="No holidays found." itemLabel="Holiday Name" columns={[{ key: 'name', header: 'Holiday Name', render: (item) => item.name }, { key: 'date', header: 'Date', render: (item) => item.date ? item.date.split('-').reverse().join('/') : '' }]} />; }

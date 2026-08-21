@@ -13,7 +13,7 @@
     --primary-color: #790c0c;
     --secondary-color: #01898d;
     --bg-sidebar: linear-gradient(180deg, #790c0c 0%, #5a0909 100%);
-    --sidebar-width: 248px;
+    --sidebar-width: 290px;
     --text-primary: #1a1f2e;
     --text-secondary: #6b7280;
     --text-muted: #9ca3af;
@@ -277,12 +277,12 @@ button:active {
    ========================================== */
 
 /* App Content Headings: Use primary maroon color globally (excluding sidebar) */
-.app-container h1:not(.sidebar *),
-.app-container h2:not(.sidebar *),
-.app-container h3:not(.sidebar *),
-.app-container h4:not(.sidebar *),
-.app-container h5:not(.sidebar *),
-.app-container h6:not(.sidebar *) {
+.main-content h1,
+.main-content h2,
+.main-content h3,
+.main-content h4,
+.main-content h5,
+.main-content h6 {
     color: var(--color-primary);
 }
 
@@ -329,7 +329,9 @@ button:active {
         height: 100dvh;
         background: var(--bg-sidebar);
         transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        box-shadow: 4px 0 24px rgba(121, 12, 12, 0.2);
+        box-shadow:
+    4px 0 18px rgba(0,0,0,.18),
+    0 0 0 1px rgba(255,255,255,.03);
     }
 
     .sidebar.collapsed {
@@ -341,9 +343,12 @@ button:active {
     }
 
     .sidebar-brand {
-        @apply flex items-center gap-3 flex-shrink-0 border-b border-white/10;
-        padding: 26px 24px 20px;
-    }
+    @apply flex items-center gap-4 flex-shrink-0 border-b border-white/10;
+
+    padding: 24px;
+
+    min-height: 86px;
+}
 
     .brand-logo {
         @apply w-[42px] h-[42px] flex items-center justify-center flex-shrink-0 rounded-xl;
@@ -363,32 +368,71 @@ button:active {
 
     .nav-section-label {
         @apply flex-shrink-0 text-[0.68rem] font-bold uppercase tracking-widest;
-        padding: 12px 24px 4px;
+        padding: 18px 18px 8px;
+
+font-size: .70rem;
+
+letter-spacing: .18em;
         color: rgba(255, 255, 255, 0.35);
     }
 
     .nav-menu {
-        @apply flex flex-col gap-0.5 flex-1 overflow-y-auto overflow-x-hidden;
-        padding: 4px 12px;
-    }
+    @apply flex flex-col flex-1 overflow-y-auto overflow-x-hidden;
+
+    gap: 6px;
+    min-height: 0;
+    padding: 14px 12px;
+}
+
+.nav-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.nav-menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.nav-menu::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,.18);
+    border-radius: 20px;
+}
+
+.nav-menu::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,.3);
+}
+
+.nav-menu {
+    scrollbar-width: thin;
+    scroll-behavior: smooth;
+    scrollbar-color: rgba(255,255,255,.18) transparent;
+}
 
     .nav-link {
-        @apply flex items-center gap-3 rounded-[10px] no-underline text-[0.88rem] font-medium relative overflow-hidden;
-        padding: 11px 14px;
-        color: rgba(255, 255, 255, 0.72);
-        font-family: 'Inter', sans-serif;
-        transition: all 0.2s ease;
-    }
+    @apply flex items-center gap-3 rounded-[10px] no-underline text-[0.88rem] font-medium relative overflow-hidden;
+    padding: 13px 16px;
+    color: rgba(255, 255, 255, 0.72);
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s ease;
+    flex-shrink: 0; /* ADD THIS */
+}
 
     .nav-link .nav-icon {
         @apply w-5 h-5 flex items-center justify-center flex-shrink-0;
+        min-width: 20px;
         transition: transform 0.2s ease, color 0.2s ease;
     }
 
+    .nav-group {
+    flex-shrink: 0;
+}
+
     .nav-link:hover {
-        @apply text-white;
-        background: rgba(255, 255, 255, 0.1);
-    }
+    @apply text-white;
+
+    background: rgba(255,255,255,.08);
+
+    transform: translateX(4px);
+}
 
     .nav-link:hover .nav-icon {
         @apply scale-110;
@@ -396,20 +440,24 @@ button:active {
     }
 
     .nav-link.active {
-        @apply text-white font-semibold;
-        background: rgba(255, 255, 255, 0.15);
-    }
+    @apply text-white font-semibold;
+    background: rgba(255,255,255,.18);
+    box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.08),
+        0 4px 10px rgba(0,0,0,.12);
+}
 
     .nav-link.active .nav-icon {
         color: #4dd8dc;
     }
 
     .nav-link.active::before {
-        @apply absolute left-0 w-[3px] rounded-r-sm;
+        @apply absolute left-0 w-[4px] rounded-r-md;
         content: '';
-        top: 20%;
-        bottom: 20%;
-        background: var(--secondary-color);
+        top: 15%;
+        bottom: 15%;
+        background: #4dd8dc;
+        box-shadow: 0 0 10px rgba(77, 216, 220, 0.4);
     }
 
     .nav-link-text {
@@ -417,13 +465,23 @@ button:active {
     }
 
     .sidebar-footer {
-        @apply flex-shrink-0 border-t border-white/10;
-        padding: 12px 12px 24px;
-    }
+    @apply flex-shrink-0 border-t border-white/10;
+
+    margin-top: auto;
+
+    padding: 16px;
+}
 
     .logout-btn {
         @apply w-full flex items-center justify-center gap-3 rounded-[12px] text-[0.9rem] font-bold cursor-pointer transition-all duration-300;
         padding: 14px;
+        height: 48px;
+
+    padding: 0 16px;
+
+    border-radius: 10px;
+
+    font-weight: 600;
         background: #ef4444;
         color: white;
         border: none;

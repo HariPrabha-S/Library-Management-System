@@ -11,7 +11,7 @@ const routeTitles = {
   '/student/issued': { title: 'My Borrowed Books', subtitle: 'Track your borrowed materials' },
   '/student/fines': { title: 'Fine History', subtitle: 'View your library fine status' },
   '/student/requests': { title: 'Reservation Status', subtitle: 'Track your book requests' },
-  '/student/profile': { title: 'My Profile', subtitle: 'View and edit your information' },
+  '/student/profile': { title: 'My Profile', subtitle: 'View your profile information' },
   '/student/resources': { title: 'Digital Resources', subtitle: 'Access e-books and research papers' },
 };
 
@@ -25,7 +25,7 @@ const Layout = ({ user, onLogout }) => {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  const currentRoute = routeTitles[location.pathname] || { title: 'Library Portal', subtitle: '' };
+  const currentRoute = routeTitles[location.pathname] || { title: 'History', subtitle: 'Your library activity log' };
 
   return (
     <div className="app-container">

@@ -11,7 +11,7 @@ const DepartmentLibrary = ({ user }) => {
   useEffect(() => {
     const dept = user?.dept || user?.department || '';
     setLoading(true);
-    fetch(`http://localhost:5001/api/books/department?dept=${dept}`)
+    fetch(`/api/books/department?dept=${dept}`)
       .then(r => r.json())
       .then(data => { setBooks(data); setLoading(false); })
       .catch((err) => { 
@@ -24,7 +24,7 @@ const DepartmentLibrary = ({ user }) => {
     if (!user?.facultyId) return alert('Please login again');
 
     try {
-      const response = await fetch('http://localhost:5001/api/books/request', {
+      const response = await fetch('/api/books/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -118,9 +118,9 @@ const DepartmentLibrary = ({ user }) => {
               </thead>
               <tbody>
                 {filtered.map((book) => {
-                  const requested = requestedIds.includes(book._id);
+                  const requested = requestedIds.includes(book.id);
                   return (
-                    <tr key={book._id}>
+                    <tr key={book.id}>
                       <td>
                         <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.88rem' }}>{book.subject}</span>
                       </td>
@@ -166,7 +166,7 @@ const DepartmentLibrary = ({ user }) => {
                           }}
                           disabled={!book.available || !!requested || !!book.status}
                           onClick={() => handleRequest(book)}
-                          id={`dept-request-btn-${book._id}`}
+                          id={`dept-request-btn-${book.id}`}
                         >
                           {requested || book.status ? '⏳ Pending' : 'Request Short-Term'}
                         </button>

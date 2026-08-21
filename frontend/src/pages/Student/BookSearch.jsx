@@ -1,12 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, BookOpen, MapPin, Hash, CheckCircle, XCircle, SlidersHorizontal } from 'lucide-react';
 
-const categories = ['All', 'Computer Science', 'Software Eng.', 'Mathematics', 'Physics', 'AI / ML', 'Literature'];
+
+
+const safeText = (value, fallback = '') => {
+  if (value == null) return fallback;
+  return String(value);
+};
+
+const truncateText = (value, maxLength = 10) => {
+  const text = safeText(value, '');
+  return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+};
 
 const BookSearch = ({ user }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchBy, setSearchBy] = useState('title');
-  const [filterCategory, setFilterCategory] = useState('All');
+  const [filterSubject, setFilterSubject] = useState('All');
+  const [subjects, setSubjects] = useState([]);
   const [filterAvailability, setFilterAvailability] = useState('All');
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -16,82 +27,113 @@ const BookSearch = ({ user }) => {
 
   const fetchBooks = () => {
     setLoading(true);
-    // const params = new URLSearchParams({ term: searchTerm, by: searchBy, category: filterCategory, availability: filterAvailability });
-    // fetch(`http://localhost:5000/api/books/search?${params}`)
-    //   .then(r => r.json())
-    //   .then(data => { setBooks(data); setLoading(false); })
-    //   .catch((err) => {
-    //     console.error('Search error:', err);
-    //     setBooks([]);
-    //     setLoading(false);
-    //   });
-
-    setTimeout(() => {
-      let mockBooks = [
-        { id: 1, title: 'Introduction to Algorithms', author: 'Thomas H. Cormen', isbn: '978-0262033848', category: 'Computer Science', available: true, library: 'Main', location: 'Section A, Shelf 2', callNumber: 'QA76.6' },
-        { id: 2, title: 'Clean Code', author: 'Robert C. Martin', isbn: '978-0132350884', category: 'Software Eng.', available: false, library: 'Main', location: 'Section B, Shelf 1', callNumber: 'QA76.76' },
-        { id: 3, title: 'Artificial Intelligence: A Modern Approach', author: 'Stuart Russell', isbn: '978-0134610993', category: 'AI / ML', available: true, library: 'Department', location: 'AI Lab Reference', callNumber: 'Q335.R86' },
-        { id: 4, title: 'Calculus', author: 'James Stewart', isbn: '978-1285740621', category: 'Mathematics', available: true, library: 'Main', location: 'Section M, Shelf 4', callNumber: 'QA303.2' },
-      ];
-
-      if (searchTerm) {
-        const lowerTerm = searchTerm.toLowerCase();
-        mockBooks = mockBooks.filter(b =>
-          searchBy === 'title' ? b.title.toLowerCase().includes(lowerTerm) :
-            searchBy === 'author' ? b.author.toLowerCase().includes(lowerTerm) :
-              searchBy === 'isbn' ? b.isbn.includes(lowerTerm) :
-                b.title.toLowerCase().includes(lowerTerm) || b.author.toLowerCase().includes(lowerTerm)
-        );
+    const params = new URLSearchParams({ term: searchTerm, by: searchBy, subject: filterSubject, availability: filterAvailability });
+    const token = localStorage.getItem('token');
+    fetch(`/api/books/search?${params}`, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
       }
-      if (filterCategory !== 'All') {
-        mockBooks = mockBooks.filter(b => b.category === filterCategory);
-      }
-      if (filterAvailability !== 'All') {
-        const isAvail = filterAvailability === 'Available';
-        mockBooks = mockBooks.filter(b => b.available === isAvail);
-      }
-      setBooks(mockBooks);
-      setLoading(false);
-    }, 400);
+    })
+      .then(r => r.json())
+      .then(data => { setBooks(Array.isArray(data) ? data : []); setLoading(false); })
+      .catch((err) => {
+        console.error('Search error:', err);
+        setBooks([]);
+        setLoading(false);
+      });
   };
 
-  useEffect(() => { fetchBooks(); }, [filterCategory, filterAvailability]);
+  useEffect(() => { fetchBooks(); }, [filterSubject, filterAvailability]);
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/subjects', {
+          headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+        });
+        const data = await response.json();
+        setSubjects(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Failed to fetch subjects', error);
+      }
+    };
+    fetchSubjects();
+  }, []);
+
+  const handleReserve = async (book) => {
+    const loggedInUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const studentId = user?.id || loggedInUser.id || user?.studentId || loggedInUser.studentId || 1;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/reservations/reserve', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          memberId: studentId,
+          memberType: 'Student',
+          bookId: book.id
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setRequestedIds(prev => [...prev, book.id]);
+        alert(`Book reserved successfully! Your queue position is #${data.data.queuePosition}.`);
+        if (selectedBook?.id === book.id) {
+          setSelectedBook(null);
+        }
+      } else {
+        alert(data.message || 'Reservation failed');
+      }
+    } catch (err) {
+      console.error('Reservation error:', err);
+      alert('Could not submit reservation. Check your connection.');
+    }
+  };
 
   const handleRequest = async (book) => {
-    if (!user?.studentId) return alert('Please login again');
+    if (!book.available) {
+      return handleReserve(book);
+    }
 
-    // try {
-    //   const response = await fetch('http://localhost:5000/api/books/request', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ 
-    //       studentId: user.studentId,
-    //       bookId: book.id,
-    //       bookName: book.title,
-    //       library: book.library || 'Main'
-    //     }),
-    //   });
-    //   
-    //   const data = await response.json();
-    //   if (response.ok) {
-    //     setRequestedIds(prev => [...prev, book.id]);
-    //     alert(data.message);
-    //     if (selectedBook?.id === book.id) {
-    //       setSelectedBook(null);
-    //     }
-    //   } else {
-    //     alert(data.message || 'Request failed');
-    //   }
-    // } catch (err) {
-    //   console.error('Request error:', err);
-    //   alert('Could not submit request. Check your connection.');
-    // }
+    const loggedInUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const studentId = user?.studentId || loggedInUser.studentId || '921021205001';
 
-    setTimeout(() => {
-      setRequestedIds(prev => [...prev, book.id]);
-      alert('Book reserved successfully (Dummy)!');
-      if (selectedBook?.id === book.id) setSelectedBook(null);
-    }, 300);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/books/request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ 
+          studentId: studentId,
+          bookId: book.id,
+          bookName: book.title,
+          library: book.library || 'Main'
+        }),
+      });
+      
+      const data = await response.json();
+      if (response.ok) {
+        setRequestedIds(prev => [...prev, book.id]);
+        alert(data.message);
+        if (selectedBook?.id === book.id) {
+          setSelectedBook(null);
+        }
+      } else {
+        alert(data.message || 'Request failed');
+      }
+    } catch (err) {
+      console.error('Request error:', err);
+      alert('Could not submit request. Check your connection.');
+    }
   };
 
   return (
@@ -151,11 +193,12 @@ const BookSearch = ({ user }) => {
               <select
                 className="form-input form-select"
                 style={{ flex: '0 0 180px' }}
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                id="filter-category-select"
+                value={filterSubject}
+                onChange={(e) => setFilterSubject(e.target.value)}
+                id="filter-subject-select"
               >
-                {categories.map(c => <option key={c}>{c}</option>)}
+                <option value="All">All Subjects</option>
+                {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
               <select
                 className="form-input form-select"
@@ -168,7 +211,7 @@ const BookSearch = ({ user }) => {
                 <option value="Available">Available Only</option>
                 <option value="Unavailable">Unavailable</option>
               </select>
-              <button className="btn btn-ghost btn-sm" onClick={() => { setFilterCategory('All'); setFilterAvailability('All'); setSearchTerm(''); }}>
+              <button className="btn btn-ghost btn-sm" onClick={() => { setFilterSubject('All'); setFilterAvailability('All'); setSearchTerm(''); }}>
                 Clear Filters
               </button>
             </div>
@@ -202,7 +245,7 @@ const BookSearch = ({ user }) => {
                   <th>Book Title</th>
                   <th>Author</th>
                   <th>ISBN</th>
-                  <th>Category</th>
+                  <th>Subject</th>
                   <th>Status</th>
                   <th>Action</th>
                 </tr>
@@ -218,22 +261,22 @@ const BookSearch = ({ user }) => {
                             <BookOpen size={16} color={book.available ? 'var(--secondary-color)' : 'var(--danger)'} />
                           </div>
                           <div>
-                            <div title={book.title} style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.88rem' }}>
-                              {book.title.length > 10 ? book.title.substring(0, 10) + '...' : book.title}
+                            <div title={safeText(book.title)} style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.88rem' }}>
+                              {truncateText(book.title)}
                             </div>
                             <div style={{ fontSize: '0.72rem', color: 'var(--primary-color)', fontWeight: 500 }}>View Details</div>
                           </div>
                         </div>
                       </td>
-                      <td title={book.author} style={{ color: 'var(--text-secondary)', fontSize: '0.87rem' }}>
-                        {book.author.length > 10 ? book.author.substring(0, 10) + '...' : book.author}
+                      <td title={safeText(book.author)} style={{ color: 'var(--text-secondary)', fontSize: '0.87rem' }}>
+                        {truncateText(book.author)}
                       </td>
-                      <td title={book.isbn} style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
-                        {book.isbn.length > 10 ? book.isbn.substring(0, 10) + '...' : book.isbn}
+                      <td title={safeText(book.isbn)} style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                        {truncateText(book.isbn)}
                       </td>
-                      <td title={book.category}>
+                      <td title={safeText(book.subject)}>
                         <span className="badge badge-neutral">
-                          {book.category.length > 10 ? book.category.substring(0, 10) + '...' : book.category}
+                          {truncateText(book.subject)}
                         </span>
                       </td>
                       <td>
@@ -245,13 +288,13 @@ const BookSearch = ({ user }) => {
                       </td>
                       <td>
                         <button
-                          className={`btn btn-sm ${requested ? 'btn-ghost' : book.available ? 'btn-secondary' : 'btn-ghost'}`}
-                          style={{ opacity: !book.available && !requested ? 0.5 : 1, cursor: !book.available ? 'not-allowed' : 'pointer' }}
-                          disabled={!book.available || requested}
+                          className={`btn btn-sm ${requested ? 'btn-ghost' : book.available ? 'btn-secondary' : 'btn-primary'}`}
+                          style={{ cursor: requested ? 'default' : 'pointer' }}
+                          disabled={requested}
                           onClick={() => handleRequest(book)}
                           id={`request-btn-${book.id}`}
                         >
-                          {requested ? '✓ Requested' : 'Request'}
+                          {requested ? '✓ Requested' : book.available ? 'Request' : 'Reserve'}
                         </button>
                       </td>
                     </tr>
@@ -282,20 +325,20 @@ const BookSearch = ({ user }) => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
                 <div>
-                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>ISBN Number</label>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{selectedBook.isbn}</p>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Title</label>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{selectedBook.title}</p>
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Category</label>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{selectedBook.category}</p>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Subtitle</label>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{selectedBook.subtitle || '—'}</p>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Edition</label>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{selectedBook.edition || '—'}</p>
                 </div>
                 <div>
                   <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Library Location</label>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{selectedBook.location}</p>
-                </div>
-                <div>
-                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>Call Number</label>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{selectedBook.callNumber}</p>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{selectedBook.location || '—'}</p>
                 </div>
               </div>
 
@@ -308,11 +351,11 @@ const BookSearch = ({ user }) => {
                   )}
                 </div>
                 <button
-                  className={`btn ${requestedIds.includes(selectedBook.id) ? 'btn-ghost' : selectedBook.available ? 'btn-secondary' : 'btn-ghost'}`}
-                  disabled={!selectedBook.available || requestedIds.includes(selectedBook.id)}
+                  className={`btn ${requestedIds.includes(selectedBook.id) ? 'btn-ghost' : selectedBook.available ? 'btn-secondary' : 'btn-primary'}`}
+                  disabled={requestedIds.includes(selectedBook.id)}
                   onClick={() => handleRequest(selectedBook)}
                 >
-                  {requestedIds.includes(selectedBook.id) ? '✓ Requested' : 'Confirm Request'}
+                  {requestedIds.includes(selectedBook.id) ? '✓ Requested' : selectedBook.available ? 'Request' : 'Reserve'}
                 </button>
               </div>
             </div>

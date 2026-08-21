@@ -1,4 +1,4 @@
-const { Request, Book, Student, Faculty, Issue } = require('../../models/admin/adminModels');
+const { Request, Book, BookCopy, Student, Faculty, Issue } = require('../../models/admin/adminModels');
 const { sendSuccess, sendError } = require('../../utils/adminResponse');
 const { Op } = require('sequelize');
 
@@ -64,7 +64,12 @@ exports.approveRequest = async (req, res) => {
             return sendError(res, 'The book for this request no longer exists in the library collection.', 404);
         }
 
-        if (bookRequest.Book.available_copies <= 0) {
+        const availableCopy = await BookCopy.findOne({
+            where: { bookId: bookRequest.bookId, status: 'Available' },
+            transaction
+        });
+
+        if (!availableCopy) {
             await transaction.rollback();
             return sendError(res, 'No copies available for this book', 400);
         }
@@ -79,19 +84,18 @@ exports.approveRequest = async (req, res) => {
 
         await Issue.create({
             bookId: bookRequest.bookId,
+            copyId: availableCopy.id,
             studentId: bookRequest.studentId || null,
             facultyId: bookRequest.facultyId || null,
-            userType: bookRequest.userType || (bookRequest.studentId ? 'Student' : 'Faculty'),
             issueDate: today,
             returnDate: dueDate,
             status: 'Issued'
         }, { transaction });
 
-        // 3. Decrement available copies
-        await Book.decrement('available_copies', {
-            where: { id: bookRequest.bookId },
-            transaction
-        });
+        // 3. Mark copy as Issued and increment timesIssued
+        availableCopy.status = 'Issued';
+        availableCopy.timesIssued = (availableCopy.timesIssued || 0) + 1;
+        await availableCopy.save({ transaction });
 
         await transaction.commit();
         return sendSuccess(res, null, 'Request approved successfully');
@@ -118,54 +122,7 @@ exports.rejectRequest = async (req, res) => {
         return sendError(res, 'Error rejecting request', 500);
     }
 };
-exports.revertRequest = async (req, res) => {
-    const transaction = await Request.sequelize.transaction();
-    try {
-        const { id } = req.params;
-        const bookRequest = await Request.findByPk(id, { transaction });
 
-        if (!bookRequest) {
-            await transaction.rollback();
-            return sendError(res, 'Request not found', 404);
-        }
-
-        const oldStatus = bookRequest.status;
-        bookRequest.status = 'Pending';
-        await bookRequest.save({ transaction });
-
-        if (oldStatus === 'Approved') {
-            // Find and delete the issue record created during approval
-            const issueToDelete = await Issue.findOne({
-                where: {
-                    bookId: bookRequest.bookId,
-                    [Op.or]: [
-                        { studentId: bookRequest.studentId || -1 },
-                        { facultyId: bookRequest.facultyId || -1 }
-                    ],
-                    status: 'Issued'
-                },
-                transaction
-            });
-
-            if (issueToDelete) {
-                await issueToDelete.destroy({ transaction });
-
-                // Increment book stock
-                await Book.increment('available_copies', {
-                    where: { id: bookRequest.bookId },
-                    transaction
-                });
-            }
-        }
-
-        await transaction.commit();
-        return sendSuccess(res, null, 'Request reverted to pending successfully');
-    } catch (error) {
-        if (transaction) await transaction.rollback();
-        console.error('revertRequest error:', error);
-        return sendError(res, 'Error reverting request', 500);
-    }
-};
 
 exports.deleteRequest = async (req, res) => {
     try {

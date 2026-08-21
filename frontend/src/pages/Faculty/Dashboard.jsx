@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BookOpen, Clock, DollarSign, Bookmark, MapPin,
-  TrendingUp, ArrowRight, AlertCircle, CheckCircle, RefreshCw
+  TrendingUp, ArrowRight, AlertCircle, CheckCircle, RefreshCw, Calendar
 } from 'lucide-react';
 
 
@@ -12,43 +12,32 @@ const Dashboard = ({ user }) => {
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  // ----- DUMMY DATA FOR FRONTEND TESTING -----
   useEffect(() => {
-    // if (!user?.facultyId) return;
-    //
-    // setLoading(true);
-    // Promise.all([
-    //   fetch(`http://localhost:5001/api/dashboard/${` u ser.facultyId}`).then(r => r.json()),
-    //   fetch(`http://localhost:5001/api/activity/${user.facultyId}`).then(r => r.json())
-    // ])
-    //   .then(([stats, act]) => {
-    //     setData(stats);
-    //     setActivity(act);
-    //     setLoading(false);
-    //   })
-    //   .catch(err => {
-    //     console.error('Dashboard fetch error:', err);
-    //     setError(err.message);
-    //     setLoading(false);
-    //   });
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-    setData({
-      name: 'Dr. John Doe',
-      department: 'Computer Science',
-      totalIssued: 4,
-      dueSoon: 0,
-      totalFine: 0,
-      pendingReqs: 1,
-      selectedLibrary: 'Central Library',
-      libraryFocus: 'Central Library',
-    });
-    setActivity([
-      { type: 'issue', title: 'Issued: Artificial Intelligence', sub: 'Main Library', date: '2025-03-24' },
-      { type: 'request', title: 'Requested: Advanced Robotics', sub: 'Pending', date: '2025-03-22' },
-      { type: 'return', title: 'Returned: Machine Learning', sub: 'Main Library', date: '2025-03-20' },
-    ]);
-    setLoading(false);
+  useEffect(() => {
+    const loggedInUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const facultyId = user?.facultyId || loggedInUser.facultyId || 'NSCIT001';
+
+    setLoading(true);
+    Promise.all([
+      fetch(`/api/dashboard/${facultyId}`).then(r => r.json()),
+      fetch(`/api/activity/${facultyId}`).then(r => r.json())
+    ])
+      .then(([stats, act]) => {
+        setData(stats);
+        setActivity(act);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Dashboard fetch error:', err);
+        setError(err.message);
+        setLoading(false);
+      });
   }, [user?.facultyId]);
 
   const activityIconMap = {
@@ -82,116 +71,110 @@ const Dashboard = ({ user }) => {
 
   const statsCards = [
     {
-      label: 'Total Books Issued',
-      value: d.totalIssued,
+      title: 'Books Borrowed',
+      value: d.totalIssued || 0,
+      sub: 'ACTIVE BORROWINGS',
       icon: BookOpen,
-      iconColor: 'white',
-      iconBg: 'var(--secondary-color)',
-      accent: 'var(--secondary-color)',
-      circlePos: { top: -20, right: -20 }
+      iconColor: 'var(--secondary-color)',
+      iconBg: 'rgba(1, 137, 141, 0.08)',
+      border: 'var(--secondary-color)',
     },
     {
-      label: 'Books Due Soon',
-      value: d.dueSoon,
-      icon: Clock,
-      iconColor: 'white',
-      iconBg: 'var(--primary-color)',
-      accent: 'var(--primary-color)',
-      circlePos: { bottom: -40, right: 30 }
+      title: 'Overdue Books',
+      value: d.dueSoon || 0,
+      sub: 'IMMEDIATE ATTENTION',
+      icon: AlertCircle,
+      iconColor: 'var(--primary-color)',
+      iconBg: 'rgba(121, 12, 12, 0.08)',
+      border: 'var(--primary-color)',
     },
     {
-      label: 'Total Fine (₹)',
-      value: `₹${d.totalFine}`,
+      title: 'TOTAL FINE (₹)',
+      value: d.totalFine || 0,
+      sub: 'OUTSTANDING DUES',
       icon: DollarSign,
-      iconColor: 'white',
-      iconBg: 'var(--primary-color)',
-      accent: 'var(--primary-color)',
-      circlePos: { top: 10, left: -30 }
+      iconColor: 'var(--primary-color)',
+      iconBg: 'rgba(121, 12, 12, 0.08)',
+      border: 'var(--primary-color)',
+      isCurrency: true
     },
     {
-      label: 'Pending Requests',
-      value: d.pendingReqs,
+      title: 'PENDING REQUESTS',
+      value: d.pendingReqs || 0,
+      sub: 'AWAITING APPROVAL',
       icon: Bookmark,
-      iconColor: 'white',
-      iconBg: 'var(--secondary-color)',
-      accent: 'var(--secondary-color)',
-      circlePos: { bottom: -30, left: -20 }
+      iconColor: 'var(--secondary-color)',
+      iconBg: 'rgba(1, 137, 141, 0.08)',
+      border: 'var(--secondary-color)',
     },
   ];
 
   return (
     <div className="animate-fade-in">
-      {/* Welcome Header */}
-      <div style={{ marginBottom: 28 }}>
-        <h2 style={{ fontSize: '1.9rem', fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Playfair Display', serif" }}>
-          Welcome back, {displayName.split(' ')[0]} 👋
-        </h2>
-        <p style={{ color: 'var(--text-secondary)', marginTop: 4, fontSize: '0.95rem' }}>
-          {d.department} &bull; Faculty &bull; {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-        </p>
-      </div>
+      {/* Header Section with Date/Time */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 40 }}>
+        <div>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Playfair Display', serif", marginBottom: 6 }}>
+            Library Dashboard
+          </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>
+            Welcome back, {displayName.split(' ')[0]}! Here's your LMS overview.
+          </p>
+        </div>
 
-      {/* Library Banner */}
-      <div style={{
-        background: 'linear-gradient(135deg, var(--primary-color) 0%, #a01010 100%)',
-        borderRadius: 'var(--radius-lg)',
-        padding: '24px 28px',
-        marginBottom: 28,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        boxShadow: '0 4px 20px rgba(121,12,12,0.25)',
-        flexWrap: 'wrap',
-        gap: 16,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 48, height: 48, background: 'rgba(255,255,255,0.15)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <MapPin size={22} color="white" />
+        <div style={{
+          background: 'white',
+          borderRadius: 16,
+          padding: '12px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 20,
+          boxShadow: '0 4px 15px rgba(0,0,0,0.03)',
+          border: '1px solid var(--border-light)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-primary)', fontWeight: 600 }}>
+            <Calendar size={18} color="var(--primary-color)" />
+            <span>{currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).replace(/,/g, '')}</span>
           </div>
-          <div>
-            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.82rem', fontWeight: 500, marginBottom: 4 }}>Currently Browsing</p>
-            <h3 style={{ color: 'white', fontSize: '1.2rem', fontWeight: 700, fontFamily: "'Playfair Display', serif" }}>
-              {d.libraryFocus || 'Main Library'}
-            </h3>
+          <div style={{ width: 1, height: 24, background: 'var(--border-light)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-primary)', fontWeight: 600 }}>
+            <Clock size={18} color="var(--secondary-color)" />
+            <span>{currentTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}</span>
           </div>
         </div>
-        <button
-          className="btn"
-          onClick={() => navigate('/faculty/selection')}
-          style={{ background: 'rgba(255,255,255,0.15)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(4px)' }}
-          id="switch-library-btn"
-        >
-          Switch Library <ArrowRight size={16} />
-        </button>
       </div>
 
+
+
       {/* Stats Grid */}
-      <div className="grid-cards">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24, marginBottom: 40 }}>
         {statsCards.map((card, i) => {
           const Icon = card.icon;
           return (
-            <div key={i} className="stat-card" style={{ position: 'relative', overflow: 'hidden', marginBottom: 28 }}>
-              <div style={{
-                position: 'absolute',
-                ...card.circlePos,
-                width: 120,
-                height: 120,
-                borderRadius: '50%',
-                background: card.accent,
-                opacity: 0.07,
-                zIndex: 0
-              }} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
-                <div className="stat-icon" style={{ background: card.iconBg }}>
-                  <Icon size={20} color={card.iconColor} />
+            <div key={i} style={{
+              background: 'white',
+              borderRadius: 16,
+              padding: '24px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
+              border: '1px solid var(--border-light)',
+              borderLeft: `5px solid ${card.border}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+              <div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 8 }}>
+                  {card.title}
                 </div>
-                <TrendingUp size={16} color="var(--text-muted)" />
+                <div style={{ fontSize: '2.4rem', fontWeight: 800, color: '#790c0c', lineHeight: 1, marginBottom: 12 }}>
+                  {card.isCurrency && '₹'} {card.value}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  {card.sub}
+                </div>
               </div>
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <div className="stat-label">{card.label}</div>
-                <div className={`stat-value`} style={{ fontSize: card.valueSmall ? '1.3rem' : '2rem', marginTop: 6 }}>
-                  {card.value}
-                </div>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: card.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon size={26} color={card.iconColor} />
               </div>
             </div>
           );
@@ -204,7 +187,7 @@ const Dashboard = ({ user }) => {
         <div className="panel">
           <div className="panel-header">
             <h3 className="panel-title">Recent Activity</h3>
-            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/faculty/history')}>
+            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/faculty/issued')}>
               View All <ArrowRight size={14} />
             </button>
           </div>

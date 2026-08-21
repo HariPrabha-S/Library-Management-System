@@ -9,8 +9,8 @@ const routeTitles = {
   '/admin/students': { title: 'Manage Students', subtitle: 'Student directory and activities' },
   '/admin/faculties': { title: 'Manage Faculties', subtitle: 'Faculty directory and permissions' },
   '/admin/issues': { title: 'Manage Issues', subtitle: 'Monitor borrow/return transactions' },
-  '/admin/attendance': { title: 'User Attendance', subtitle: 'Daily library visit logs' },
   '/admin/fines': { title: 'Manage Records', subtitle: 'Track and collect overdue fines' },
+  '/admin/resources': { title: 'Manage Digital Resources', subtitle: 'Approve or reject uploaded works' },
 };
 
 export default function AdminLayout({ user, onLogout }) {

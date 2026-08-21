@@ -2,125 +2,164 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const ROLE_CONFIG = {
-    student: { label: "Roll Number", placeholder: "Enter your roll number" },
+    student: { label: "Register Number", placeholder: "Enter your Register Number" },
     faculty: { label: "Faculty ID", placeholder: "Enter your faculty ID" },
-    admin: { label: "Admin ID", placeholder: "Enter your admin ID" },
+    admin: { label: "Admin Username", placeholder: "Enter your admin username" },
 };
 
-export default function Login() {
+export default function Login({ onLoginSuccess }) {
     const [role, setRole] = useState("student");
     const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
+        setError("");
+        setLoading(true);
 
-        if (role === "admin") navigate("/admin/dashboard");
-        else if (role === "student") navigate("/student/dashboard");
-        else if (role === "faculty") navigate("/faculty/dashboard");
+        // Clear any previous session details completely
+        localStorage.clear();
+        sessionStorage.clear();
+        document.cookie.split(";").forEach((c) => {
+            document.cookie = c
+                .replace(/^ +/, "")
+                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+
+        try {
+            const payload = {
+                user_id: identifier,
+                email: identifier,
+                username: identifier,
+                password,
+                role,
+            };
+
+            console.log('[AUTH] Sending login request', { role, identifier });
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            // Read raw response text first to avoid JSON parse throwing on empty/non-JSON bodies
+            const raw = await res.text();
+            console.log('[AUTH] Login response', { status: res.status, raw });
+            let data = null;
+            try {
+                data = raw ? JSON.parse(raw) : null;
+            } catch (parseErr) {
+                // Response wasn't JSON
+                const snippet = raw && raw.length > 200 ? raw.slice(0, 200) + '...' : raw;
+                throw new Error(`Server returned unexpected response: ${snippet || '<empty response>'}`);
+            }
+
+            if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
+
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.setItem('role', data.role);
+            localStorage.setItem('userId', data.userId);
+
+            if (onLoginSuccess) onLoginSuccess(data.user);
+
+            if (data.role === 'student') navigate('/student/dashboard');
+            else if (data.role === 'faculty') navigate('/faculty/dashboard');
+            else navigate('/admin/dashboard');
+
+        } catch (err) {
+            setError(err.message || 'Login failed.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <div className="min-h-screen flex">
 
-            {/* LEFT SIDE – LMS Branding */}
-            <div className="hidden md:flex w-1/2 bg-gradient-to-br from-[#790c0c] to-[#01898d] text-white items-center justify-center p-12">
-                <div>
-
-                    {/* 🔥 Added font-heading */}
-                    <h1 className="text-4xl font-heading font-bold mb-6">
-                        Library Management System
-                    </h1>
-
-                    {/* 🔥 Added font-heading + bigger for serif impact */}
-                    <h2 className="text-4xl font-heading font-bold leading-tight mb-8">
-                        Organizing Knowledge,
-                        <br />
-                        Empowering Learning
-                    </h2>
-
-                    <p className="text-lg opacity-90">
-                        Search books, manage borrowings, track due dates,
-                        and access academic resources from one unified platform.
-                    </p>
+            {/* LEFT - Gradient panel */}
+            <div className="hidden md:flex w-1/2 bg-gradient-to-br from-[#7f1d1d] via-[#6b7b73] to-[#0e7b72] text-white items-center justify-center p-12">
+                <div className="max-w-lg">
+                    <h1 className="text-4xl font-serif font-bold mb-6">Library Management System</h1>
+                    <h2 className="text-3xl font-serif font-bold leading-tight mb-6">Organizing Knowledge,<br />Empowering Learning</h2>
+                    <p className="text-lg opacity-90">Search books, manage borrowings, track due dates, and access academic resources from one unified platform.</p>
                 </div>
             </div>
 
-            {/* RIGHT SIDE – LOGIN CARD */}
+            {/* RIGHT - Login card */}
             <div className="flex w-full md:w-1/2 items-center justify-center bg-gray-100 p-6">
-                <div className="w-full max-w-md bg-white p-10 rounded-2xl shadow-xl">
+                <div className="w-full max-w-md bg-white p-8 md:p-10 rounded-2xl shadow-xl">
 
-                    {/* 🔥 Added font-heading */}
-                    <h2 className="text-2xl font-heading font-bold text-center mb-2">
-                        Welcome Back
-                    </h2>
+                    <h2 className="text-2xl font-serif font-bold text-center mb-1">Welcome Back</h2>
+                    <p className="text-center text-gray-500 mb-6">Sign in to your LMS account</p>
 
-                    <p className="text-center text-gray-500 mb-6">
-                        Sign in to your LMS account
-                    </p>
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">{error}</div>
+                    )}
 
-                    <form className="space-y-5" onSubmit={handleSubmit}>
+                    <form className="space-y-4" onSubmit={handleLogin}>
 
-                        <div className="relative group">
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
-                                Login As
-                            </label>
-                            <div className="relative">
-                                <select
-                                    value={role}
-                                    onChange={(e) => setRole(e.target.value)}
-                                    className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-700 font-medium outline-none focus:bg-white focus:border-(--color-primary) focus:ring-4 focus:ring-(--color-primary)/5 transition-all cursor-pointer pr-10"
-                                >
-                                    <option value="student">Student</option>
-                                    <option value="faculty">Faculty</option>
-                                    <option value="admin">Admin</option>
-                                </select>
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-(--color-primary) transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                        <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z" />
-                                    </svg>
-                                </div>
-                            </div>
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Login As</label>
+                            <select value={role} onChange={e => setRole(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-700 outline-none focus:bg-white focus:ring-2 focus:ring-[#01898d]">
+                                <option value="student">Student</option>
+                                <option value="faculty">Faculty</option>
+                                <option value="admin">Admin</option>
+                            </select>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1">
-                                {ROLE_CONFIG[role].label}
-                            </label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">{ROLE_CONFIG[role].label}</label>
                             <input
                                 type="text"
                                 value={identifier}
                                 onChange={(e) => setIdentifier(e.target.value)}
-                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[#01898d]"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#01898d]"
                                 placeholder={ROLE_CONFIG[role].placeholder}
+                                required
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1">
-                                Password
-                            </label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[#01898d]"
-                                placeholder="Enter your password"
-                            />
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-28 focus:outline-none focus:ring-2 focus:ring-[#01898d]"
+                                    placeholder={role === 'student' ? 'Enter your password' : 'Enter your password'}
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword((prev) => !prev)}
+                                    className="absolute inset-y-0 right-0 inline-flex items-center px-4 text-sm font-medium text-gray-600 hover:text-gray-900 focus:outline-none"
+                                >
+                                    {showPassword ? 'Hide' : 'Show'}
+                                </button>
+                            </div>
                         </div>
 
                         <button
                             type="submit"
-                            className="w-full bg-[#790c0c] text-white py-3 rounded-lg hover:opacity-90 transition font-medium tracking-wide"
+                            disabled={loading}
+                            className="w-full bg-[#7b0b0b] text-white py-3 rounded-lg hover:opacity-95 transition font-medium tracking-wide disabled:opacity-50"
                         >
-                            Sign In
+                            {loading ? 'Signing in...' : 'Sign In'}
                         </button>
 
                     </form>
 
+
+
                 </div>
             </div>
+
         </div>
     );
 }

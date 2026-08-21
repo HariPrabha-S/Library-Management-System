@@ -89,7 +89,7 @@ export default function StudentReports({ isOpen, onClose, filters, setFilters, o
                                     <option value="ECE">ECE</option>
                                     <option value="EEE">EEE</option>
                                     <option value="IT">IT</option>
-                                    <option value="AIDS">AIDS</option>
+                                    <option value="AI&DS">AI&DS</option>
                                     <option value="CIVIL">CIVIL</option>
                                     <option value="MECH">MECH</option>
                                 </select>

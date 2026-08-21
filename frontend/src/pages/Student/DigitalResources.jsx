@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Globe, FileText, Video, BookOpen, Download, ExternalLink } from 'lucide-react';
 
+const resourceTypes = ['All', 'E-Book', 'Research Paper', 'Journal', 'Video Lecture', 'NPTEL', 'OPAC', 'Other'];
+
 const DigitalResources = () => {
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,39 +15,32 @@ const DigitalResources = () => {
   }, [filterType]);
 
   const fetchResources = async () => {
-    // try {
-    //   setLoading(true);
-    //   let url = 'http://localhost:5000/api/resources';
-    //   if (filterType !== 'All') {
-    //     url += `?type=${filterType}`;
-    //   }
-    //   const response = await fetch(url);
-    //   if (!response.ok) throw new Error('Failed to fetch resources');
-    //   const data = await response.json();
-    //   setResources(data);
-    // } catch (err) {
-    //   setError(err.message);
-    // } finally {
-    //   setLoading(false);
-    // }
-
-    setTimeout(() => {
-      const dummyResources = [
-        { id: 1, title: 'Quantum Computing for Dummies', author: 'Dr. John Doe', type: 'E-Book', subject: 'Physics', thumbnail: 'https://placehold.co/150x200?text=E-Book' },
-        { id: 2, title: 'Advances in Deep Learning', author: 'AI Research Group', type: 'Research Paper', subject: 'Computer Science', thumbnail: 'https://placehold.co/150x200?text=Research' },
-        { id: 3, title: 'Web Development 2024', author: 'Tech Academy', type: 'Video Lecture', subject: 'IT', thumbnail: 'https://placehold.co/150x200?text=Video' },
-        { id: 4, title: 'Global Economics Journal', author: 'World Bank', type: 'Journal', subject: 'Economics', thumbnail: 'https://placehold.co/150x200?text=Journal' },
-      ];
-
-      const filtered = filterType === 'All' ? dummyResources : dummyResources.filter(r => r.type === filterType);
-      setResources(filtered);
+    try {
+      setLoading(true);
+      setError(null);
+      const params = new URLSearchParams();
+      if (filterType !== 'All') params.set('type', filterType);
+      const response = await fetch(`/api/resources${params.toString() ? `?${params.toString()}` : ''}`);
+      if (!response.ok) throw new Error('Failed to fetch resources');
+      const data = await response.json();
+      setResources(data.map(resource => ({
+        id: resource.id || resource.digital_resource_id,
+        title: resource.title || '',
+        description: resource.description || '',
+        type: resource.type || resource.resource_type || 'Research Paper',
+        fileUrl: resource.file_url || resource.fileUrl || resource.file_path || resource.filePath || '',
+        author: resource.author || resource.uploaded_by?.name || 'Library'
+      })));
+    } catch (err) {
+      setError(err.message);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
-  const filteredResources = resources.filter(res =>
-    res.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    res.author.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredResources = resources.filter(resource =>
+    resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    resource.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getTypeIcon = (type) => {
@@ -58,18 +53,22 @@ const DigitalResources = () => {
     }
   };
 
+  const openResource = (url) => {
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className="resources-container">
       <header className="resources-header">
         <div>
           <h1>Digital Resources</h1>
-          <p>Access e-books, research papers, and video lectures</p>
+          <p>Access approved e-books, journals, research papers, and video lectures</p>
         </div>
         <div className="search-bar">
           <Search className="search-icon" size={20} />
           <input
             type="text"
-            placeholder="Search by title or author..."
+            placeholder="Search by title or type..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -77,11 +76,16 @@ const DigitalResources = () => {
       </header>
 
       <div className="filter-tags">
-        {['All', 'E-Book', 'Research Paper', 'Journal', 'Video Lecture'].map(type => (
+        {resourceTypes.map(type => (
           <button
             key={type}
             className={`filter-tag ${filterType === type ? 'active' : ''}`}
-            onClick={() => setFilterType(type)}
+            onClick={() => {
+              setFilterType(type);
+              if (type === 'NPTEL') {
+                window.open('https://nptel.ac.in/courses', '_blank', 'noopener,noreferrer');
+              }
+            }}
           >
             {type}
           </button>
@@ -92,12 +96,16 @@ const DigitalResources = () => {
         <div className="loading-state">Loading resources...</div>
       ) : error ? (
         <div className="error-state">{error}</div>
+      ) : filteredResources.length === 0 ? (
+        <div className="empty-state">No approved digital resources found.</div>
       ) : (
         <div className="resources-grid">
           {filteredResources.map(resource => (
             <div key={resource.id} className="resource-card">
               <div className="resource-thumbnail">
-                <img src={resource.thumbnail} alt={resource.title} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--primary-color)' }}>
+                  {getTypeIcon(resource.type)}
+                </div>
                 <div className="resource-type-badge">
                   {getTypeIcon(resource.type)}
                   <span>{resource.type}</span>
@@ -106,13 +114,13 @@ const DigitalResources = () => {
               <div className="resource-info">
                 <h3>{resource.title}</h3>
                 <p className="resource-author">{resource.author}</p>
-                <p className="resource-subject">{resource.subject}</p>
+                <p className="resource-subject">{resource.description}</p>
                 <div className="resource-actions">
-                  <button className="action-btn download">
+                  <button className="action-btn download" onClick={() => openResource(resource.fileUrl)} disabled={!resource.fileUrl}>
                     <Download size={16} />
                     <span>Access</span>
                   </button>
-                  <button className="action-btn view">
+                  <button className="action-btn view" onClick={() => openResource(resource.fileUrl)} disabled={!resource.fileUrl}>
                     <ExternalLink size={16} />
                   </button>
                 </div>

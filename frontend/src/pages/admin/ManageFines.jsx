@@ -49,24 +49,6 @@ export default function ManageFines() {
         }
     }
 
-    const handleRevertFine = async (id) => {
-        if (!window.confirm("Revert this settlement back to unpaid?")) return;
-        try {
-            setLoading(true);
-            const res = await adminService.revertFine(id);
-            if (res.success) {
-                alert("Settlement reverted successfully!");
-                fetchFines();
-            } else {
-                alert(res.message || "Failed to revert");
-            }
-        } catch (error) {
-            console.error(error);
-            alert("Network error while reverting");
-        } finally {
-            setLoading(false);
-        }
-    }
 
     const filteredFines = fines.filter(f =>
         (f.name || "").toLowerCase().includes(search.toLowerCase()) ||
@@ -147,7 +129,7 @@ export default function ManageFines() {
                                         </td>
                                         <td className="py-4 px-3 whitespace-nowrap align-middle">
                                             <div className="flex items-center gap-3">
-                                                {fine.status === 'Unpaid' ? (
+                                                {fine.status === 'Pending' ? (
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
@@ -158,15 +140,7 @@ export default function ManageFines() {
                                                         <FiCheckCircle size={14} /> Clear Fine
                                                     </button>
                                                 ) : (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleRevertFine(fine.id);
-                                                        }}
-                                                        className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-600 hover:text-white rounded-lg text-xs font-bold transition-all shadow-sm border border-amber-100"
-                                                    >
-                                                        <FiRotateCcw size={14} /> Revert
-                                                    </button>
+                                                    <span className="text-gray-400 font-semibold px-3 py-1.5 bg-gray-50 border border-gray-150 rounded-xl text-xs">Settled</span>
                                                 )}
                                             </div>
                                         </td>
@@ -236,7 +210,7 @@ export default function ManageFines() {
                                 data: reportData,
                                 summaryFields: [
                                     { label: "Total Fine Count", value: reportData.length },
-                                    { label: "Total Outstanding", value: `₹${reportData.filter(r => r.status === 'Unpaid').reduce((sum, r) => sum + (Number(r.amount) || 0), 0).toLocaleString('en-IN')}` },
+                                    { label: "Total Outstanding", value: `₹${reportData.filter(r => r.status === 'Pending').reduce((sum, r) => sum + (Number(r.amount) || 0), 0).toLocaleString('en-IN')}` },
                                     { label: "Total Collected", value: `₹${reportData.filter(r => r.status === 'Paid').reduce((sum, r) => sum + (Number(r.amount) || 0), 0).toLocaleString('en-IN')}` }
                                 ]
                             });

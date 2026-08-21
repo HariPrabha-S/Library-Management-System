@@ -106,7 +106,7 @@ export default function FineReports({ isOpen, onClose, filters, onPreview }) {
                         <div className="pt-4 border-t border-gray-100">
                             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-2 px-1">Quick Filters</span>
                             <div className="grid grid-cols-2 gap-2 mb-4">
-                                {['Paid', 'Unpaid'].map(s => (
+                                {['Paid', 'Pending'].map(s => (
                                     <button
                                         key={s}
                                         onClick={() => setLocalFilters({ ...localFilters, status: s })}

@@ -9,33 +9,35 @@ const DepartmentLibrary = ({ user }) => {
   const [searchSem, setSearchSem] = useState('All');
 
   useEffect(() => {
-    // const dept = user?.dept || user?.department || '';
-    // setLoading(true);
-    // fetch(`http://localhost:5000/api/books/department?dept=${dept}`)
-    //   .then(r => r.json())
-    //   .then(data => { setBooks(data); setLoading(false); })
-    //   .catch((err) => { 
-    //     console.error('Dept fetch error:', err);
-    //     setLoading(false); 
-    //   });
-
-    setTimeout(() => {
-      const dummyDeptBooks = [
-        { _id: 'd1', subject: 'Operating Systems', semester: 'Semester IV', title: 'Silberschatz OS Concepts', available: true },
-        { _id: 'd2', subject: 'Database Management', semester: 'Semester IV', title: 'Korth Database Systems', available: false, status: 'On Loan' },
-        { _id: 'd3', subject: 'Cloud Computing', semester: 'Semester VI', title: 'AWS Architect Guide', available: true },
-        { _id: 'd4', subject: 'Web Development', semester: 'Semester VI', title: 'React JS Mastery', available: true },
-      ];
-      setBooks(dummyDeptBooks);
+    const dept = user?.dept || user?.department || '';
+    if (!dept) {
+      setBooks([]);
       setLoading(false);
-    }, 500);
+      return;
+    }
+
+    setLoading(true);
+    fetch(`/api/books/department?dept=${encodeURIComponent(dept)}`)
+      .then(r => {
+        if (!r.ok) throw new Error('Department books fetch failed');
+        return r.json();
+      })
+      .then(data => {
+        setBooks(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Dept fetch error:', err);
+        setBooks([]);
+        setLoading(false);
+      });
   }, [user]);
 
   const handleRequest = async (book) => {
     if (!user?.studentId) return alert('Please login again');
 
     try {
-      const response = await fetch('http://localhost:5000/api/books/request', {
+      const response = await fetch('/api/books/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -79,7 +81,9 @@ const DepartmentLibrary = ({ user }) => {
           <BookOpen size={20} color="var(--secondary-color)" />
         </div>
         <div>
-          <p style={{ fontWeight: 600, color: 'var(--secondary-color)', fontSize: '0.9rem' }}>Department Library — Computer Science</p>
+          <p style={{ fontWeight: 600, color: 'var(--secondary-color)', fontSize: '0.9rem' }}>
+            Department Library — {user?.dept || user?.department || 'Department'}
+          </p>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.83rem', marginTop: 2 }}>
             Showing semester-specific books for your department. Short-term issues available for most titles.
           </p>
@@ -129,9 +133,9 @@ const DepartmentLibrary = ({ user }) => {
               </thead>
               <tbody>
                 {filtered.map((book) => {
-                  const requested = requestedIds.includes(book._id);
+                  const requested = requestedIds.includes(book.id);
                   return (
-                    <tr key={book._id}>
+                    <tr key={book.id}>
                       <td>
                         <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.88rem' }}>{book.subject}</span>
                       </td>
@@ -177,7 +181,7 @@ const DepartmentLibrary = ({ user }) => {
                           }}
                           disabled={!book.available || !!requested || !!book.status}
                           onClick={() => handleRequest(book)}
-                          id={`dept-request-btn-${book._id}`}
+                          id={`dept-request-btn-${book.id}`}
                         >
                           {requested || book.status ? '⏳ Pending' : 'Request Short-Term'}
                         </button>

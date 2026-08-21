@@ -72,29 +72,4 @@ exports.clearFine = async (req, res) => {
     }
 };
 
-exports.revertFine = async (req, res) => {
-    const transaction = await Fine.sequelize.transaction();
-    try {
-        const { id } = req.params;
-        const fine = await Fine.findByPk(id, { transaction });
 
-        if (!fine) {
-            await transaction.rollback();
-            return sendError(res, 'Fine not found', 404);
-        }
-
-        if (fine.status === 'Unpaid') {
-            await transaction.rollback();
-            return sendError(res, 'Fine already unpaid', 400);
-        }
-
-        fine.status = 'Unpaid';
-        await fine.save({ transaction });
-
-        await transaction.commit();
-        return sendSuccess(res, fine, 'Fine reverted successfully');
-    } catch (error) {
-        await transaction.rollback();
-        return sendError(res, 'Error reverting fine', 500);
-    }
-};

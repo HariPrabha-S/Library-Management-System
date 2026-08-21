@@ -26,7 +26,7 @@ export default function FacultyFilters({
             >
                 <option value="">All Departments</option>
                 <option value="CSE">CSE</option>
-                <option value="AIDS">AIDS</option>
+                <option value="AI&DS">AI&DS</option>
                 <option value="IT">IT</option>
                 <option value="ECE">ECE</option>
                 <option value="EEE">EEE</option>

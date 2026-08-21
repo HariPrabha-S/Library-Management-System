@@ -16,55 +16,162 @@ import { FiUploadCloud, FiFile, FiCheckCircle, FiAlertCircle, FiDownload } from 
 const TEMPLATES = {
     book: {
         fields: [
-            { label: "Accession Number", key: "accessionNo" },
-            { label: "ISBN", key: "isbn" },
-            { label: "Book Title", key: "title" },
-            { label: "Subtitle", key: "subtitle" },
-            { label: "Author", key: "author" },
-            { label: "Publisher", key: "publisher" },
+        // =========================
+        // BOOK / COPY INFORMATION
+        // Excel column order
+        // =========================
+            { label: "Accession Number", key: "accessionNumber" },
+            { label: "Control Number", key: "controlNumber" },
+            { label: "Title", key: "title" },
+            { label: "Sub Title", key: "subtitle" },
             { label: "Edition", key: "edition" },
-            { label: "Year of Publishing", key: "year" },
-            { label: "Department", key: "department" },
-            { label: "Subject", key: "subject" },
-            { label: "Language", key: "language" },
-            { label: "Category", key: "category" },
-            { label: "Call Number", key: "callNumber" },
-            { label: "Shelf Location (Rack)", key: "shelfLocation" },
-            { label: "Issue Type", key: "issueType" },
-            { label: "Total Copies", key: "totalCopies" },
-        ],
-        sample: [
-            ["ACC101", "978-0-13-468599-1", "Data Structures", "", "Tanenbaum", "Pearson", "3rd", "2020", "CSE", "Programming", "English", "Reference", "CS101", "A-1", "Issuable", "5"],
-            ["ACC102", "978-0-11-468322-4", "Operating Systems", "", "Silberschatz", "Wiley", "9th", "2019", "CSE", "Systems", "English", "", "CS102", "A-2", "Reference", "3"],
-        ]
-    },
-    student: {
-        fields: [
-            { label: "Name", key: "name" },
-            { label: "Roll No", key: "rollNo" },
-            { label: "Department", key: "department" },
+            { label: "Author", key: "author" },
+            { label: "Publisher Name", key: "publisher" },
             { label: "Year", key: "year" },
-            { label: "Email", key: "email" },
+            { label: "Price", key: "price" },
+            { label: "Call Number", key: "callNumber" },
+            { label: "Text Pages", key: "textPages" },
+            { label: "Isbn", key: "isbn" },
+            { label: "Gift Note", key: "giftNote" },
+            { label: "Keyword", key: "keyword" },
+            { label: "Release", key: "releaseInfo" },
+            { label: "Foreign Edition", key: "foreignEdition" },
+            { label: "Department", key: "department" },
+            { label: "Language", key: "language" },
+            { label: "Library", key: "library" },
+            { label: "Subject", key: "subject" },
+            { label: "Purchase Details", key: "purchaseDetails" },
+            { label: "Number of Copies", key: "numberOfCopies" },
+            { label: "Publication Place", key: "publicationPlace" },
+            { label: "Indian Edition", key: "indianEdition" },
+            { label: "Academic Category", key: "academicCategory" },
+            { label: "Binding Type", key: "bindingType" },
+            { label: "Content Pages", key: "contentPages" },
+            { label: "Remarks", key: "remarks" },
+            { label: "Vendor", key: "vendor" },
+            { label: "Invoice Number", key: "invoiceNumber" },
+            { label: "Fund Source", key: "fundSource" },
+            { label: "Purchase Cost", key: "purchaseCost" },
+            { label: "Issue Type", key: "issueType" },
+            { label: "Purchase Date", key: "purchaseDate" },
+            { label: "Rack Location", key: "rackLocation" },
         ],
+
         sample: [
-            ["Arun Kumar", "CSE001", "CSE", "2", "arun@college.edu"],
-            ["Priya Sharma", "ECE015", "ECE", "3", "priya@college.edu"],
+            [
+                "ACC-0001",
+                "CTRL-0001",
+                "Data Structures",
+                "Algorithms and Applications",
+                "3rd",
+                "Tanenbaum",
+                "Pearson",
+                "2020",
+                "450",
+                "CS101",
+                "420",
+                "978-0-13-468599-1",
+                "",
+                "Data Structures, Programming",
+                "First Release",
+                "No",
+                "CSE",
+                "English",
+                "Main Library",
+                "Programming",
+                "Purchased from ABC Books",
+                "5",
+                "Chennai",
+                "Yes",
+                "Computer Science",
+                "Hardcover",
+                "450",
+                "Primary text",
+                "ABC Books",
+                "INV-2024-001",
+                "College Fund",
+                "400",
+                "Issuable",
+                "2024-01-15",
+                "A-1"
+            ],
+            [
+                "ACC-0002",
+                "CTRL-0002",
+                "Operating Systems",
+                "",
+                "9th",
+                "Silberschatz",
+                "Wiley",
+                "2019",
+                "600",
+                "CS102",
+                "550",
+                "978-0-11-468322-4",
+                "",
+                "Operating Systems",
+                "Second Release",
+                "No",
+                "CSE",
+                "English",
+                "Main Library",
+                "Systems",
+                "Purchased from XYZ Publishers",
+                "3",
+                "Chennai",
+                "Yes",
+                "Computer Science",
+                "Hardcover",
+                "600",
+                "Reference book",
+                "XYZ Publishers",
+                "INV-2023-045",
+                "Department Fund",
+                "550",
+                "Reference",
+                "2023-09-10",
+                "A-2"
+            ]
         ]
     },
-    faculty: {
-        fields: [
-            { label: "Faculty Name", key: "name" },
-            { label: "Employee ID", key: "employeeId" },
-            { label: "Department", key: "department" },
-            { label: "Designation", key: "designation" },
-            { label: "Email Address", key: "email" },
-        ],
-        sample: [
-            ["Dr. Rajesh Kumar", "EMP001", "CSE", "Professor", "rajesh@college.edu"],
-            ["Dr. Meena Sharma", "EMP002", "ECE", "Associate Professor", "meena@college.edu"],
-        ]
-    }
-};
+        student: {
+            fields: [
+                { label: "Name", key: "name" },
+                { label: "Roll No", key: "rollNo" },
+                { label: "Department", key: "department" },
+                { label: "Year", key: "year" },
+                { label: "Email", key: "email" },
+                { label: "Photo", key: "photo" },
+                { label: "Department Full", key: "departmentFull" },
+                { label: "Batch", key: "batch" },
+                { label: "Gender", key: "gender" },
+                { label: "DOB", key: "dob" },
+                { label: "Phone", key: "phoneNumber" },
+                { label: "Semester", key: "semester" },
+                { label: "Admission Date", key: "admissionDate" },
+                { label: "Student ID", key: "studentId" },
+                { label: "Status", key: "status" },
+                { label: "Category", key: "category" }
+            ],
+            sample: [
+                ["Arun Kumar", "CSE001", "CSE", "2", "arun@college.edu"],
+                ["Priya Sharma", "ECE015", "ECE", "3", "priya@college.edu"],
+            ]
+        },
+        faculty: {
+            fields: [
+                { label: "Faculty Name", key: "name" },
+                { label: "Employee ID", key: "employeeId" },
+                { label: "Department", key: "department" },
+                { label: "Designation", key: "designation" },
+                { label: "Email Address", key: "email" },
+            ],
+            sample: [
+                ["Dr. Rajesh Kumar", "EMP001", "CSE", "Professor", "rajesh@college.edu"],
+                ["Dr. Meena Sharma", "EMP002", "ECE", "Associate Professor", "meena@college.edu"],
+            ]
+        }
+    };
 
 /* ── helpers ─────────────────────────────────────────────── */
 
@@ -83,18 +190,55 @@ function downloadTemplate(type) {
 }
 
 function parseCSV(text) {
-    const lines = text.trim().split("\n");
-    return lines.map(line => {
-        const cols = [];
-        let cur = "", inQ = false;
-        for (const ch of line) {
-            if (ch === '"') { inQ = !inQ; }
-            else if (ch === "," && !inQ) { cols.push(cur.trim()); cur = ""; }
-            else { cur += ch; }
+    const rows = [];
+    let row = [];
+    let current = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const nextChar = text[i + 1];
+
+        if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+                current += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === "," && !inQuotes) {
+            row.push(current.trim());
+            current = "";
+        } else if (
+            (char === "\n" || char === "\r") &&
+            !inQuotes
+        ) {
+            if (char === "\r" && nextChar === "\n") {
+                i++;
+            }
+
+            row.push(current.trim());
+
+            if (row.some(value => value !== "")) {
+                rows.push(row);
+            }
+
+            row = [];
+            current = "";
+        } else {
+            current += char;
         }
-        cols.push(cur.trim());
-        return cols;
-    });
+    }
+
+    // Add final cell
+    row.push(current.trim());
+
+    // Add final row
+    if (row.some(value => value !== "")) {
+        rows.push(row);
+    }
+
+    return rows;
 }
 
 /* Strip spaces/special chars for fuzzy column matching */
@@ -215,11 +359,29 @@ export default function BulkUploadModal({ type, onUpload, onClose }) {
         if (f) handleFile(f);
     }
 
-    function handleConfirm() {
+    async function handleConfirm() {
         if (!preview) return;
-        onUpload(preview.rows);
-        setSuccess(true);
-        setTimeout(onClose, 1200);
+        
+        // Validate mandatory fields for students
+        if (type === "student") {
+            const missingMandatory = preview.rows.some(r => !r.name || !r.rollNo || !r.department);
+            if (missingMandatory) {
+                setError("Validation failed: Every student must have a Name, Roll No (register_no), and Department.");
+                return;
+            }
+        }
+
+        console.log(`[DEBUG FRONTEND] Parsed row count: ${preview.rows.length}`);
+        console.log(`[DEBUG FRONTEND] Payload size (bytes): ${JSON.stringify(preview.rows).length}`);
+
+        try {
+            setError("");
+            await onUpload(preview.rows);
+            setSuccess(true);
+            setTimeout(() => onClose(), 1200);
+        } catch (err) {
+            setError(err?.message || "Bulk upload failed.");
+        }
     }
 
     return (
@@ -237,8 +399,8 @@ export default function BulkUploadModal({ type, onUpload, onClose }) {
                             Bulk Upload {label}s
                         </h2>
                         <p className="text-sm text-gray-500 mt-0.5">
-                            Upload a <strong>.xlsx</strong>, <strong>.xls</strong>, or <strong>.csv</strong> file with the required columns.
-                        </p>
+    Upload a <strong>.xlsx</strong>, <strong>.xls</strong>, or <strong>.csv</strong> file with {type} data. For students, <strong>name</strong>, <strong>register_no (Roll No)</strong>, and <strong>department</strong> are mandatory. Other fields are optional.
+</p>
                     </div>
                     <button
                         onClick={onClose}
@@ -259,8 +421,8 @@ export default function BulkUploadModal({ type, onUpload, onClose }) {
                     {/* ── Required Columns Info ── */}
                     <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                            Required Excel / CSV Columns
-                        </p>
+    Supported Excel / CSV Columns
+</p>
                         <div className="flex flex-wrap gap-2">
                             {tpl.fields.map(({ label: lbl, key }) => (
                                 <span
@@ -279,8 +441,8 @@ export default function BulkUploadModal({ type, onUpload, onClose }) {
                         <div>
                             <p className="text-sm font-semibold text-blue-800">Download Template</p>
                             <p className="text-xs text-blue-600">
-                                Pre-filled CSV with the exact column headers and sample rows.
-                            </p>
+    Pre-filled CSV with the exact column headers and sample rows. Total copies, shelf location, and issue type are used to create individual book copies. Accession numbers are generated automatically.
+</p>
                         </div>
                         <button
                             onClick={() => downloadTemplate(type)}
